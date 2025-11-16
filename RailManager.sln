@@ -25,6 +25,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0184A835
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RailManager.Interfaces.Tests", "src\RailManager.Interfaces.Tests\RailManager.Interfaces.Tests.csproj", "{DA65A9ED-B888-4324-8125-EFE0E5F52B9F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RailManagerInstaller", "src\RailManagerInstaller\RailManagerInstaller.csproj", "{3664BEB9-B584-3B66-27D5-9EBE129DA034}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RailManagerInstaller.Tests", "src\RailManagerInstaller.Tests\RailManagerInstaller.Tests.csproj", "{FC9761BF-898A-E589-8603-E5832CEBA099}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +55,14 @@ Global
 		{DA65A9ED-B888-4324-8125-EFE0E5F52B9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DA65A9ED-B888-4324-8125-EFE0E5F52B9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DA65A9ED-B888-4324-8125-EFE0E5F52B9F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3664BEB9-B584-3B66-27D5-9EBE129DA034}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3664BEB9-B584-3B66-27D5-9EBE129DA034}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3664BEB9-B584-3B66-27D5-9EBE129DA034}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3664BEB9-B584-3B66-27D5-9EBE129DA034}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FC9761BF-898A-E589-8603-E5832CEBA099}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC9761BF-898A-E589-8603-E5832CEBA099}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC9761BF-898A-E589-8603-E5832CEBA099}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC9761BF-898A-E589-8603-E5832CEBA099}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -61,6 +73,8 @@ Global
 		{3FEB6F46-035B-F148-D38C-557CE555DB30} = {16E319D6-387E-4F84-B3DD-B23E034879F3}
 		{DFD635F0-F7C0-ABAF-A694-EED5393E57C7} = {7B93DE15-7946-499E-BB37-53EDBB51BBC7}
 		{DA65A9ED-B888-4324-8125-EFE0E5F52B9F} = {0184A835-F699-424D-867D-47492C90D55D}
+		{3664BEB9-B584-3B66-27D5-9EBE129DA034} = {7B93DE15-7946-499E-BB37-53EDBB51BBC7}
+		{FC9761BF-898A-E589-8603-E5832CEBA099} = {0184A835-F699-424D-867D-47492C90D55D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F18BD306-C30D-4769-8786-870338585E11}
