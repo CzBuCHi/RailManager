@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup> 
+        <MajorVersion>1</MajorVersion>
+        <MinorVersion>0</MinorVersion>
+        <UpdateDefinition>true</UpdateDefinition>
+    </PropertyGroup>
+    
+    <ItemGroup>
+        <GameAssembly Include="Assembly-CSharp" />
+        <GameAssembly Include="UnityEngine.CoreModule" />
+        <GameAssembly Include="Serilog" />
+        <GameAssembly Include="0Harmony" />
+        <GameAssembly Include="RailManager.Interfaces" />
+
+        <ModAssembly Include="SimpleMod" />
+    </ItemGroup>
+
+</Project>

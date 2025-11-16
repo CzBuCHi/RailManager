@@ -1,0 +1,93 @@
+﻿<Project>
+    <PropertyGroup>
+        <GameManagedDir Condition="'$(GameManagedDir)' == ''">$(GameDir)\Railroader_Data\Managed</GameManagedDir>
+        <GameModsDir Condition="'$(GameModsDir)' == ''">$(GameDir)\Mods</GameModsDir>
+        <BuildToolsScript>$(MSBuildThisFileDirectory)\BuildTools.ps1</BuildToolsScript>
+    </PropertyGroup>
+
+    <!-- update AssemblyVersion -->
+    <PropertyGroup>
+        <YearTwoDigit>$([System.DateTime]::UtcNow.ToString(yy))</YearTwoDigit>
+        <DayOfYear>$([System.DateTime]::UtcNow.DayOfYear.ToString("000"))</DayOfYear>
+        <TimeHM>$([System.DateTime]::UtcNow.ToString(HHmm))</TimeHM>
+        <NewVersion>$(MajorVersion).$(MinorVersion).$(YearTwoDigit)$(DayOfYear).$(TimeHM)</NewVersion>
+        <AssemblyVersion>$(NewVersion)</AssemblyVersion>
+        <FileVersion>$(NewVersion)</FileVersion>
+        <PackageVersion>$(NewVersion)</PackageVersion>
+    </PropertyGroup>
+
+    <!-- Reference the .dll specified with GameAssembly elements-->
+    <ItemGroup>
+        <Reference Include="@(GameAssembly)">
+            <HintPath>$(GameManagedDir)\%(Identity).dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+    </ItemGroup>
+
+    <!-- Allow referencing other mods -->
+    <ItemGroup>
+        <_ProjectReference Include="@(ModAssembly->'..\%(Identity)\%(Identity).csproj')" />
+        <_RealProject Include="..\*\*.csproj" />
+        <_NotExistingProject Include="@(_ProjectReference)" Exclude="@(_RealProject)"/>
+        <ProjectReference Include="@(_ProjectReference)" Exclude="@(_NotExistingProject)" />
+
+        <Reference Include="@(_NotExistingProject->'%(Filename)')">
+            <HintPath>$(GameModsDir)\%(Filename)\%(Filename).dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+    </ItemGroup>
+
+    <!-- Update definition.json -->
+    <Target Name="UpdateDefinition" BeforeTargets="CoreCompile;BeforeBuild" Condition=" '$(UpdateDefinition)' == 'true' ">
+        <Exec Command="powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;&amp; { . '$(BuildToolsScript)'; Update-Definition -GameModsDir '$(GameModsDir)' -ProjectDir '$(MSBuildProjectDirectory)' -Version '$(NewVersion)' -ResourceList '@(EmbeddedResource)' -Requires '@(ModAssembly)' }&quot;"
+              ContinueOnError="false">
+            <Output TaskParameter="ExitCode" PropertyName="PSExit" />
+        </Exec>
+        <Error Condition="'$(PSExit)' != '0'" Text="PowerShell script failed (exit $(PSExit))" />
+    </Target>
+
+    <Target Name="ZipSourceAfterBuild" AfterTargets="Build">
+
+        <PropertyGroup>
+            <ZipOutputDir>$(MSBuildProjectDirectory)\..\output</ZipOutputDir>
+            <ZipFileName>$(MSBuildProjectName).$(AssemblyVersion).zip</ZipFileName>
+            <ZipFilePath>$(ZipOutputDir)\$(ZipFileName)</ZipFilePath>
+
+            <!-- Temporary root for collected source files -->
+            <TempSourceDir>$(IntermediateOutputPath)SourceForZip</TempSourceDir>
+        </PropertyGroup>
+
+        <!-- Prepare destination -->
+        <MakeDir Directories="$(ZipOutputDir)" />
+
+        <!-- Clean temp directory -->
+        <RemoveDir Directories="$(TempSourceDir)" />
+        <MakeDir Directories="$(TempSourceDir)" />
+
+        <!-- Collect all desired source-like items -->
+        <ItemGroup>
+            <SourceItems Include="@(Compile)" />
+            <SourceItems Include="@(None)" />
+            <SourceItems Include="@(Content)" />
+            <SourceItems Include="@(EmbeddedResource)" />
+
+            <!-- Exclude bin/obj from source lists -->
+            <SourceItems Remove="**\bin\**" />
+            <SourceItems Remove="**\obj\**" />
+        </ItemGroup>
+
+        <!-- Copy selected source files to temp directory, preserving folder structure -->
+        <Copy
+            SourceFiles="@(SourceItems)"
+            DestinationFiles="@(SourceItems->'$(TempSourceDir)\%(RelativeDir)%(Filename)%(Extension)')"
+            SkipUnchangedFiles="false" />
+
+        <!-- Now zip the staged directory -->
+        <ZipDirectory
+            SourceDirectory="$(TempSourceDir)"
+            DestinationFile="$(ZipFilePath)"
+            Overwrite="true" />
+
+        <Message Importance="High" Text="Created source zip: $(ZipFilePath)" />
+    </Target>
+</Project>

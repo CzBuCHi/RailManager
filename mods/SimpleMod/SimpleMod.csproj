@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup> 
+        <MajorVersion>1</MajorVersion>
+        <MinorVersion>0</MinorVersion>
+        <UpdateDefinition>true</UpdateDefinition>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <None Remove="Resources\icon.png" />
+      <None Remove="Resources\icon2.png" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="Resources\icon.png" />
+      <EmbeddedResource Include="Resources\icon2.png" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <GameAssembly Include="Assembly-CSharp" />
+        <GameAssembly Include="UnityEngine.CoreModule" />
+        <GameAssembly Include="Serilog" />
+        <GameAssembly Include="0Harmony" />
+        <GameAssembly Include="RailManager.Interfaces" />
+    </ItemGroup>
+
+</Project>
