@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RailManagerInstaller", "src
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RailManagerInstaller.Tests", "src\RailManagerInstaller.Tests\RailManagerInstaller.Tests.csproj", "{FC9761BF-898A-E589-8603-E5832CEBA099}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RailManager", "src\RailManager\RailManager.csproj", "{B526D0EA-19DA-7C8E-C378-96C63FF24B29}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +65,10 @@ Global
 		{FC9761BF-898A-E589-8603-E5832CEBA099}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FC9761BF-898A-E589-8603-E5832CEBA099}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FC9761BF-898A-E589-8603-E5832CEBA099}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B526D0EA-19DA-7C8E-C378-96C63FF24B29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B526D0EA-19DA-7C8E-C378-96C63FF24B29}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B526D0EA-19DA-7C8E-C378-96C63FF24B29}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B526D0EA-19DA-7C8E-C378-96C63FF24B29}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -75,6 +81,7 @@ Global
 		{DA65A9ED-B888-4324-8125-EFE0E5F52B9F} = {0184A835-F699-424D-867D-47492C90D55D}
 		{3664BEB9-B584-3B66-27D5-9EBE129DA034} = {7B93DE15-7946-499E-BB37-53EDBB51BBC7}
 		{FC9761BF-898A-E589-8603-E5832CEBA099} = {0184A835-F699-424D-867D-47492C90D55D}
+		{B526D0EA-19DA-7C8E-C378-96C63FF24B29} = {7B93DE15-7946-499E-BB37-53EDBB51BBC7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F18BD306-C30D-4769-8786-870338585E11}
