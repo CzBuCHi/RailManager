@@ -1,0 +1,1 @@
+fake game root folder; all referecnes used by mod manager needs to be copied here from real game directory

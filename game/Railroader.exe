@@ -1,0 +1,4 @@
+Dummy file
+
+Placed here so RailManagerInstaller threads this directory ass game root directory
+(so i can test installer without messing with real game binaries).
