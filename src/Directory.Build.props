@@ -1,0 +1,68 @@
+﻿<Project>
+    <Import Project="$(SolutionDir)Paths.user" Condition=" Exists('$(SolutionDir)Paths.user') " />
+
+    <!-- Common properties -->
+    <PropertyGroup>
+        <GameDir Condition=" '$(GameDir)' == '' ">$(SolutionDir)game</GameDir>
+        <TargetFramework>net48</TargetFramework>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <LangVersion>13.0</LangVersion>
+        <ImplicitUsings>false</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <!-- Common properties for Release mode -->
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+        <DebugType>none</DebugType>
+        <DebugSymbols>false</DebugSymbols>
+    </PropertyGroup>
+
+    <!-- Test propects only properties -->
+    <PropertyGroup Condition=" '$(IsTestProject)' == 'true' ">
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <!-- Common game references -->
+    <ItemGroup>
+        <GameAssembly Include="Serilog" />
+        <GameAssembly Include="UnityEngine.CoreModule" />
+        <GameAssembly Include="Assembly-CSharp" />
+    </ItemGroup>
+
+    <!-- Test propects game references -->
+    <ItemGroup Condition=" '$(IsTestProject)' == 'true' ">
+        <GameAssembly Include="netstandard" />
+        <GameAssembly Include="system" />
+    </ItemGroup>
+
+    <!-- Test propects packages -->
+    <ItemGroup Condition=" '$(IsTestProject)' == 'true' ">
+        <PackageReference Include="coverlet.collector" Version="6.0.4" />
+        <PackageReference Update="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+        <PackageReference Include="xunit" Version="2.9.3" />
+        <PackageReference Include="Shouldly" Version="4.3.0" />
+        <PackageReference Include="NSubstitute" Version="5.3.0" />
+        <PackageReference Include="NSubstitute.Analyzers.CSharp" Version="1.0.17">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="BUTR.Harmony.Analyzer" Version="1.0.1.50">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <!-- Test propects implicit usings -->
+    <ItemGroup  Condition=" '$(IsTestProject)' == 'true' ">
+        <Using Include="Xunit" />
+    </ItemGroup>
+
+    <!-- Verify Paths.user file exists -->
+    <Target Name="CheckPathsUser" BeforeTargets="ResolveReferences">
+        <PropertyGroup>
+            <PathsUserFile>$(SolutionDir)Paths.user</PathsUserFile>
+        </PropertyGroup>
+        <Error Text="The file 'Paths.user' was not found in solution directory. Please ensure it exists." Condition=" !Exists('$(PathsUserFile)') "/>
+    </Target>
+
+</Project>

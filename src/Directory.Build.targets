@@ -1,0 +1,56 @@
+﻿<Project>
+    <PropertyGroup>
+        <GameManagedDir Condition="'$(GameManagedDir)' == ''">$([System.IO.Directory]::GetDirectories(`$(GameDir)`, `*_Data`)[0])\Managed</GameManagedDir>
+        <GameModDir Condition="'$(GameModDir)' == ''">$(GameDir)/Mods/$(AssemblyName)</GameModDir>
+        <IsMod Condition="'$(IsMod)' == ''">false</IsMod>
+        <PackageMod Condition="'$(PackageMod)' == '' Or '$(IsMod)' == 'false'">disable</PackageMod>
+        <PublishMod Condition="'$(PublishMod)' == '' Or '$(PackageMod)' == 'false'">disable</PublishMod>
+    </PropertyGroup>
+    
+    <!-- Replace the default version if something was set for it -->
+    <PropertyGroup Condition="'$(AssemblyVersion)' == '' OR '$(MajorVersion)' != '' OR '$(MinorVersion)' != ''">
+        <MajorVersion Condition="'$(MajorVersion)' == ''">1</MajorVersion>
+        <MinorVersion Condition="'$(MinorVersion)' == ''">0</MinorVersion>
+        <AssemblyVersion>$(MajorVersion).$(MinorVersion).$([System.DateTime]::UtcNow.ToString(yy))$([System.DateTime]::UtcNow.DayOfYear.ToString("000")).$([System.DateTime]::UtcNow.ToString("Hmm").TrimStart('0'))</AssemblyVersion>
+        <FileVersion>$(AssemblyVersion)</FileVersion>
+        <ProductVersion>$(AssemblyVersion)</ProductVersion>
+    </PropertyGroup>
+    
+    <ItemGroup>
+        <!-- Reference the .dll/.exes specified with GameAssembly elements-->
+        <Reference Include="@(GameAssembly)">
+            <HintPath Condition="Exists('$(GameManagedDir)\%(Identity).dll')">$(GameManagedDir)\%(Identity).dll</HintPath>
+            <HintPath Condition="Exists('$(GameManagedDir)\%(Identity).exe')">$(GameManagedDir)\%(Identity).exe</HintPath>
+            <HintPath Condition="Exists('$(GameDir)/Mods/%(Identity)/%(Identity).dll')">$(GameDir)/Mods/%(Identity)/%(Identity).dll</HintPath>
+            <Private>$(IsTestProject)</Private>
+        </Reference>
+        
+        <!-- Allow test project to see internals -->
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+            <_Parameter1>$(MSBuildProjectName).Tests</_Parameter1>
+         </AssemblyAttribute>
+    </ItemGroup>
+       
+    <!-- Copy LastWriteTime from Source to Dest -->
+    <UsingTask TaskName="SetFileTime" TaskFactory="CodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+          <ParameterGroup>
+              <Source ParameterType="Microsoft.Build.Framework.ITaskItem" Required="true" />
+              <Dest ParameterType="Microsoft.Build.Framework.ITaskItem" Required="true" />
+          </ParameterGroup>
+          <Task>
+              <Code Type="Fragment" Language="cs">
+                  <![CDATA[
+                  var src = Source.GetMetadata("FullPath");
+                  var dst = Dest.GetMetadata("FullPath");
+                  if (!System.IO.File.Exists(src)) { Log.LogError("Source not found: " + src); return false; }
+                  if (!System.IO.File.Exists(dst)) { Log.LogError("Dest not found: " + dst); return false; }
+                  var time = System.IO.File.GetLastWriteTimeUtc(src);
+                  System.IO.File.SetLastWriteTimeUtc(dst, time);
+                  Log.LogMessage("Timestamp synced: " + dst + " to " + time);
+                  ]]>
+              </Code>
+          </Task>
+      </UsingTask>
+    
+</Project>
