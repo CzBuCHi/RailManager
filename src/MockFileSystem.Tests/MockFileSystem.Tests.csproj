@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <IsTestProject>true</IsTestProject>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <GameAssembly Include="Mono.Cecil" />
+        <GameAssembly Include="Mono.CSharp" />
+        <GameAssembly Include="Newtonsoft.Json" />
+        <GameAssembly Include="System.IO.Compression" />
+        <GameAssembly Include="System.IO.Compression.FileSystem" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\MockFileSystem\MockFileSystem.csproj" />
+    </ItemGroup>
+
+</Project>

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.0.11205.157 d18.0
+VisualStudioVersion = 18.0.11205.157
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{16E319D6-387E-4F84-B3DD-B23E034879F3}"
 EndProject
@@ -30,6 +30,12 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RailManagerInstaller.Tests", "src\RailManagerInstaller.Tests\RailManagerInstaller.Tests.csproj", "{FC9761BF-898A-E589-8603-E5832CEBA099}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RailManager", "src\RailManager\RailManager.csproj", "{B526D0EA-19DA-7C8E-C378-96C63FF24B29}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MockFileSystem.Tests", "src\MockFileSystem.Tests\MockFileSystem.Tests.csproj", "{55D37A8B-C462-F437-B45E-EF4DDC954808}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mocks", "mocks", "{D7F42A44-E487-4FA9-9064-8B5C26448039}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MockFileSystem", "src\MockFileSystem\MockFileSystem.csproj", "{F0BA4611-2D35-46FE-DB08-08D11346509F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -69,6 +75,14 @@ Global
 		{B526D0EA-19DA-7C8E-C378-96C63FF24B29}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B526D0EA-19DA-7C8E-C378-96C63FF24B29}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B526D0EA-19DA-7C8E-C378-96C63FF24B29}.Release|Any CPU.Build.0 = Release|Any CPU
+		{55D37A8B-C462-F437-B45E-EF4DDC954808}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55D37A8B-C462-F437-B45E-EF4DDC954808}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55D37A8B-C462-F437-B45E-EF4DDC954808}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55D37A8B-C462-F437-B45E-EF4DDC954808}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F0BA4611-2D35-46FE-DB08-08D11346509F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F0BA4611-2D35-46FE-DB08-08D11346509F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F0BA4611-2D35-46FE-DB08-08D11346509F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F0BA4611-2D35-46FE-DB08-08D11346509F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -82,6 +96,8 @@ Global
 		{3664BEB9-B584-3B66-27D5-9EBE129DA034} = {7B93DE15-7946-499E-BB37-53EDBB51BBC7}
 		{FC9761BF-898A-E589-8603-E5832CEBA099} = {0184A835-F699-424D-867D-47492C90D55D}
 		{B526D0EA-19DA-7C8E-C378-96C63FF24B29} = {7B93DE15-7946-499E-BB37-53EDBB51BBC7}
+		{55D37A8B-C462-F437-B45E-EF4DDC954808} = {0184A835-F699-424D-867D-47492C90D55D}
+		{F0BA4611-2D35-46FE-DB08-08D11346509F} = {D7F42A44-E487-4FA9-9064-8B5C26448039}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F18BD306-C30D-4769-8786-870338585E11}
