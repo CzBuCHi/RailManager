@@ -1,0 +1,44 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.11205.157 d18.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{16E319D6-387E-4F84-B3DD-B23E034879F3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExternalAnnotationsBuilder", "tools\ExternalAnnotationsBuilder\ExternalAnnotationsBuilder.csproj", "{A06FFBFE-197B-E3FC-DC08-51489B8061B8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stryker", "tools\Stryker\Stryker.csproj", "{FF50EFCD-0F2F-87EE-B385-9C1ECAF1F937}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StrykerReportTool", "tools\StrykerReportTool\StrykerReportTool.csproj", "{3FEB6F46-035B-F148-D38C-557CE555DB30}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A06FFBFE-197B-E3FC-DC08-51489B8061B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A06FFBFE-197B-E3FC-DC08-51489B8061B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A06FFBFE-197B-E3FC-DC08-51489B8061B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A06FFBFE-197B-E3FC-DC08-51489B8061B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FF50EFCD-0F2F-87EE-B385-9C1ECAF1F937}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF50EFCD-0F2F-87EE-B385-9C1ECAF1F937}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF50EFCD-0F2F-87EE-B385-9C1ECAF1F937}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF50EFCD-0F2F-87EE-B385-9C1ECAF1F937}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3FEB6F46-035B-F148-D38C-557CE555DB30}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3FEB6F46-035B-F148-D38C-557CE555DB30}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3FEB6F46-035B-F148-D38C-557CE555DB30}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3FEB6F46-035B-F148-D38C-557CE555DB30}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A06FFBFE-197B-E3FC-DC08-51489B8061B8} = {16E319D6-387E-4F84-B3DD-B23E034879F3}
+		{FF50EFCD-0F2F-87EE-B385-9C1ECAF1F937} = {16E319D6-387E-4F84-B3DD-B23E034879F3}
+		{3FEB6F46-035B-F148-D38C-557CE555DB30} = {16E319D6-387E-4F84-B3DD-B23E034879F3}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F18BD306-C30D-4769-8786-870338585E11}
+	EndGlobalSection
+EndGlobal

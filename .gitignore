@@ -1,0 +1,12 @@
+/.vs
+/_ReSharper.Caches
+
+/**/bin
+/**/obj
+/**/*.user
+
+/packages
+
+/ExternalAnnotations/ExternalAnnotationsBuilder.exe
+/Stryker.exe
+/StrykerReportTool.exe
