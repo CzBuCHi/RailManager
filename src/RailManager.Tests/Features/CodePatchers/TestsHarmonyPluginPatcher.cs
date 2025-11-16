@@ -1,0 +1,113 @@
+﻿using System.Linq;
+using NSubstitute;
+using RailManager.Features.CodePatchers;
+using RailManager.Interfaces.Markers;
+using RailManager.Wrappers.HarmonyLib;
+using RailManager.Wrappers.System.IO;
+using Serilog;
+using Shouldly;
+
+namespace RailManager.Tests.Features.CodePatchers;
+
+public sealed class TestsHarmonyPluginPatcher
+{
+    [Fact]
+    public void Factory()
+    {
+        // Arrange
+        var logger = Substitute.For<ILogger>();
+
+        const string source = """
+                              using RailManager.Tests.Features.CodePatchers;
+
+                              namespace Foo.Bar { 
+                                  public class TargetType : BaseType{ }
+                              }
+                              """;
+
+        var assemblyDefinition = TestUtils.BuildAssemblyDefinition(source);
+        var typeDefinition = assemblyDefinition.MainModule.Types.First(o => o.FullName == "Foo.Bar.TargetType");
+
+        // Act
+        var harmonyPluginPatcher = HarmonyPluginPatcher.Factory(logger);
+        harmonyPluginPatcher(assemblyDefinition, typeDefinition).ShouldBeFalse();
+
+        // Assert
+        logger.Debug("Skipping patching for type {TypeName}: not derived from {BaseType} or does not implement {MarkerInterface}", typeDefinition.FullName,
+            typeof(HarmonyPluginPatcher), typeof(IMarker));
+    }
+
+    [Fact]
+    public void PatchAllWhenEnabled()
+    {
+        // Arrange
+        var logger = Substitute.For<ILogger>();
+        var harmony = Substitute.For<IHarmony>();
+        var moddingContext = new ModdingContext([], logger, _ => harmony);
+        var file = Substitute.For<IFileStatic>();
+
+        var plugin = Substitute.For<IHarmonyPlugin>();
+        plugin.IsEnabled.Returns(true);
+        plugin.Mod.Returns(new Mod(logger, new ModDefinition { Identifier = "Identifier" }, file));
+        plugin.ModdingContext.Returns(moddingContext);
+
+        // Act
+        HarmonyPluginPatcher.OnIsEnabledChanged(plugin);
+
+        // Assert
+        harmony.Received(1).PatchAll(plugin.GetType().Assembly);
+        harmony.ShouldReceiveCallCount(1);
+
+        logger.Received().Information("Applying Harmony patch for mod {ModId}", "Identifier");
+    }
+
+    [Fact]
+    public void UnpatchAllWhenDisabled()
+    {
+        // Arrange
+
+        var logger = Substitute.For<ILogger>();
+        var harmony = Substitute.For<IHarmony>();
+        var moddingContext = new ModdingContext([], logger, _ => harmony);
+        var file = Substitute.For<IFileStatic>();
+
+        var plugin = Substitute.For<IHarmonyPlugin>();
+        plugin.IsEnabled.Returns(false);
+        plugin.Mod.Returns(new Mod(logger, new ModDefinition { Identifier = "Identifier" }, file));
+        plugin.ModdingContext.Returns(moddingContext);
+
+        // Act
+        HarmonyPluginPatcher.OnIsEnabledChanged(plugin);
+
+        // Assert
+        harmony.Received(1).UnpatchAll("Identifier");
+        harmony.ShouldReceiveCallCount(1);
+
+        logger.Received().Information("Removing Harmony patch for mod {ModId}", "Identifier");
+    }
+
+    [Fact]
+    public void IgnoreRepeatCalls()
+    {
+        // Arrange
+        var logger = Substitute.For<ILogger>();
+        var harmony = Substitute.For<IHarmony>();
+        var moddingContext = new ModdingContext([], logger, _ => harmony);
+        var file = Substitute.For<IFileStatic>();
+
+        var plugin = Substitute.For<IHarmonyPlugin>();
+        plugin.IsEnabled.Returns(true);
+        plugin.Mod.Returns(new Mod(logger, new ModDefinition { Identifier = "Identifier" }, file));
+        plugin.ModdingContext.Returns(moddingContext);
+
+        // Act
+        HarmonyPluginPatcher.OnIsEnabledChanged(plugin);
+        HarmonyPluginPatcher.OnIsEnabledChanged(plugin);
+
+        // Assert
+        harmony.Received(1).PatchAll(plugin.GetType().Assembly);
+        harmony.ShouldReceiveCallCount(1);
+
+        logger.Received(1).Information("Applying Harmony patch for mod {ModId}", "Identifier");
+    }
+}

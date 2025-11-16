@@ -37,6 +37,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mocks", "mocks", "{D7F42A44
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MockFileSystem", "src\MockFileSystem\MockFileSystem.csproj", "{F0BA4611-2D35-46FE-DB08-08D11346509F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RailManager.Tests", "src\RailManager.Tests\RailManager.Tests.csproj", "{EF383289-FD82-CC99-403F-1734A2B41E8A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -83,6 +85,10 @@ Global
 		{F0BA4611-2D35-46FE-DB08-08D11346509F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F0BA4611-2D35-46FE-DB08-08D11346509F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F0BA4611-2D35-46FE-DB08-08D11346509F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF383289-FD82-CC99-403F-1734A2B41E8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF383289-FD82-CC99-403F-1734A2B41E8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF383289-FD82-CC99-403F-1734A2B41E8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF383289-FD82-CC99-403F-1734A2B41E8A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -98,6 +104,7 @@ Global
 		{B526D0EA-19DA-7C8E-C378-96C63FF24B29} = {7B93DE15-7946-499E-BB37-53EDBB51BBC7}
 		{55D37A8B-C462-F437-B45E-EF4DDC954808} = {0184A835-F699-424D-867D-47492C90D55D}
 		{F0BA4611-2D35-46FE-DB08-08D11346509F} = {D7F42A44-E487-4FA9-9064-8B5C26448039}
+		{EF383289-FD82-CC99-403F-1734A2B41E8A} = {0184A835-F699-424D-867D-47492C90D55D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F18BD306-C30D-4769-8786-870338585E11}
