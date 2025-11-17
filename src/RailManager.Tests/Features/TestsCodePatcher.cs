@@ -239,7 +239,7 @@ public sealed class TestsCodePatcher
         // Arrange
         var mainModule = ModuleDefinition.CreateModule("Module", ModuleKind.Dll);
 
-        var pluginBaseGeneric = mainModule.ImportReference(typeof(PluginBase<>))!;
+        var pluginBaseGeneric = mainModule.ImportReference(typeof(PluginBase))!;
 
         var iExtra = new TypeDefinition("Foo.Bar", "IExtra", TypeAttributes.Interface | TypeAttributes.Public);
         mainModule.Types.Add(iExtra);
@@ -387,7 +387,7 @@ public sealed class TestsCodePatcher
         
         var mainModule = ModuleDefinition.CreateModule("Module", ModuleKind.Dll);
 
-        var pluginBaseGeneric = mainModule.ImportReference(typeof(PluginBase<>))!;
+        var pluginBaseGeneric = mainModule.ImportReference(typeof(PluginBase))!;
         var iHarmonyPlugin    = mainModule.ImportReference(typeof(IHarmonyPlugin))!;
         
         var typeDefinition = new TypeDefinition("Foo.Bar", "FirstPlugin", TypeAttributes.Class | TypeAttributes.Public);

@@ -15,14 +15,14 @@ namespace SimpleMod
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MainMenu), "ShouldShowEditor")]
         public static bool ShouldShowEditorPrefix() {
-            SimplePlugin.Instance.Logger.Information("--- MainMenu::ShouldShowEditor::Prefix patch from dummy called: {IsEnabled}", SimplePlugin.Instance.IsEnabled);
+            SimplePlugin.Instance?.Logger.Information("--- MainMenu::ShouldShowEditor::Prefix patch from dummy called: {IsEnabled}", SimplePlugin.Instance.IsEnabled);
             return true;
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(MainMenu), "ShouldShowEditor")]
         public static void ShouldShowEditorPostfix() {
-            SimplePlugin.Instance.Logger.Information("--- MainMenu::ShouldShowEditor::Postfix patch from dummy called: {IsEnabled}", SimplePlugin.Instance.IsEnabled);
+            SimplePlugin.Instance?.Logger.Information("--- MainMenu::ShouldShowEditor::Postfix patch from dummy called: {IsEnabled}", SimplePlugin.Instance.IsEnabled);
         }
     }
 }

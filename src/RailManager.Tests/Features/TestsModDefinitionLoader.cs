@@ -4,7 +4,7 @@ using MockFileSystem;
 using Newtonsoft.Json;
 using NSubstitute;
 using RailManager.Features;
-using RailManager.Services;
+using Serilog;
 using Serilog.Events;
 using Shouldly;
 
@@ -13,14 +13,14 @@ namespace RailManager.Tests.Features;
 public sealed class TestsModDefinitionLoader
 {
     [DebuggerStepThrough]
-    private static LoadDefinitionsDelegate Factory(IMemoryLogger logger, MemoryFileSystem fileSystem) =>
-        [DebuggerStepThrough]() => ModDefinitionLoader.LoadDefinitions(logger, fileSystem);
+    private static LoadDefinitionsDelegate Factory(ILogger logger, MemoryFileSystem fileSystem) =>
+        [DebuggerStepThrough]() => ModDefinitionLoader.LoadDefinitionsCore(logger, fileSystem);
 
     [Fact]
     public void ReturnsEmptyArrayWhenModSDirectoryNotFound() {
         // Arrange
         var fileSystem = new MemoryFileSystem(@"C:\Current");
-        var logger     = Substitute.For<IMemoryLogger>();
+        var logger     = Substitute.For<ILogger>();
         var sut        = Factory(logger, fileSystem);
 
         // Act
@@ -37,7 +37,7 @@ public sealed class TestsModDefinitionLoader
         var fileSystem = new MemoryFileSystem(@"C:\Current"){
             @"C:\Current\Mods"
         };
-        var logger     = Substitute.For<IMemoryLogger>();
+        var logger     = Substitute.For<ILogger>();
         var sut        = Factory(logger, fileSystem);
 
         // Act
@@ -53,7 +53,7 @@ public sealed class TestsModDefinitionLoader
         var fileSystem = new MemoryFileSystem(@"C:\Current") {
             { @"C:\Current\Mods\DummyMod\File.txt", "Content" }
         };
-        var logger = Substitute.For<IMemoryLogger>();
+        var logger = Substitute.For<ILogger>();
         var sut    = Factory(logger, fileSystem);
 
         // Act
@@ -72,7 +72,7 @@ public sealed class TestsModDefinitionLoader
         var fileSystem = new MemoryFileSystem(@"C:\Current") {
             { @"C:\Current\Mods\FirstMod\Definition.json", """{  "name": "Dummy mod" }""" },
         };
-        var logger = Substitute.For<IMemoryLogger>();
+        var logger = Substitute.For<ILogger>();
         var sut    = Factory(logger, fileSystem);
 
         // Act
@@ -93,7 +93,7 @@ public sealed class TestsModDefinitionLoader
             { @"C:\Current\Mods\FirstMod\Definition.json", """{ "id": "Identifier", "name": "Dummy mod", "version": "1.2.3" }""" },
             { @"C:\Current\Mods\SecondMod\Definition.json", """{ "id": "Identifier", "name": "Dummy mod", "version": "1.2.3" }""" }
         };
-        var logger = Substitute.For<IMemoryLogger>();
+        var logger = Substitute.For<ILogger>();
         var sut    = Factory(logger, fileSystem);
 
         // Act
@@ -124,7 +124,7 @@ public sealed class TestsModDefinitionLoader
         var fileSystem = new MemoryFileSystem(@"C:\Current") {
             { @"C:\Current\Mods\FirstMod\Definition.json", "Invalid" }
         };
-        var logger = Substitute.For<IMemoryLogger>();
+        var logger = Substitute.For<ILogger>();
         var sut    = Factory(logger, fileSystem);
 
         // Act
@@ -143,7 +143,7 @@ public sealed class TestsModDefinitionLoader
         var fileSystem = new MemoryFileSystem(@"C:\Current") {
             { @"C:\Current\Mods\FirstMod\Definition.json", new InvalidOperationException() }
         };
-        var logger = Substitute.For<IMemoryLogger>();
+        var logger = Substitute.For<ILogger>();
         var sut    = Factory(logger, fileSystem);
 
         // Act
@@ -162,7 +162,7 @@ public sealed class TestsModDefinitionLoader
             { @"C:\Current\Mods\DummyMod\Definition.json", """{ "id": "DummyMod", "name": "Dummy mod", "version": "1.2.3", "logLevel": "Debug" }""" },
             { @"C:\Current\Mods\SecondMod\Definition.json", """{ "id": "SecondMod", "name": "Second mod", "version": "1.0.0" }""" }
         };
-        var logger = Substitute.For<IMemoryLogger>();
+        var logger = Substitute.For<ILogger>();
         var sut    = Factory(logger, fileSystem);
 
         // Act
@@ -196,7 +196,7 @@ public sealed class TestsModDefinitionLoader
         var fileSystem = new MemoryFileSystem(@"C:\Current") {
             @"C:\Current\Mods\BadMod\"
         };
-        var logger = Substitute.For<IMemoryLogger>();
+        var logger = Substitute.For<ILogger>();
         var sut    = Factory(logger, fileSystem);
 
         sut().ShouldBeEmpty();
@@ -212,7 +212,7 @@ public sealed class TestsModDefinitionLoader
             { @"C:\Current\Mods\First\Definition.json",  "{ \"id\": \"Dup\", \"name\": \"A\", \"version\": \"1.0\" }" },
             { @"C:\Current\Mods\Second\Definition.json", "{ \"id\": \"Dup\", \"name\": \"B\", \"version\": \"1.0\" }" }
         };
-        var logger = Substitute.For<IMemoryLogger>();
+        var logger = Substitute.For<ILogger>();
         var sut    = Factory(logger, fs);
 
         var result = sut();

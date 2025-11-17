@@ -6,9 +6,9 @@ namespace RailManager.Interfaces;
 ///     Defines the contract for plugins in the modding system, providing access to modding context and mod metadata.
 /// </summary>
 /// <remarks>
-///     This interface is intended to be implemented only by classes derived from <see cref="PluginBase{T}" />.
+///     This interface is intended to be implemented only by classes derived from <see cref="PluginBase" />.
 ///     Direct implementation by other classes is not supported, as the modding system relies on the singleton
-///     and initialization logic provided by <see cref="PluginBase{T}" />.
+///     and initialization logic provided by <see cref="PluginBase" />.
 /// </remarks>
 [PublicAPI]
 public interface IPlugin

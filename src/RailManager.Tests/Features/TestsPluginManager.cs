@@ -148,7 +148,7 @@ public sealed class TestsPluginManager
 
         // Assert
         plugins.ShouldBeEmpty();
-        logger.Received().Warning("Type {Type} implements IPlugin but does not inherit from PluginBase<> in mod {ModId}", "Foo", "Identifier");
+        logger.Received().Warning("Type {Type} implements IPlugin but does not inherit from PluginBase in mod {ModId}", "Foo", "Identifier");
     }
 
     [Theory]

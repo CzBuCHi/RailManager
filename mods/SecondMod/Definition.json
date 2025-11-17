@@ -1,8 +1,8 @@
 ﻿{
     "id": "SecondMod",
     "name": "SecondMod",
-    "version": "1.0.25320.1523",
+    "version": "1.0.25321.1556",
     "requires": {
-        "SimpleMod": "1.0.25320.1523"
+        "SimpleMod": "1.0.25321.1556"
     }
 }

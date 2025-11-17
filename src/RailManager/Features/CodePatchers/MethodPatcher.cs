@@ -39,7 +39,7 @@ public static class MethodPatcher
     ) {
         var injected = patcherType.GetMethod(injectorMethod ?? targetMethod, BindingFlags.Public | BindingFlags.Static);
 
-        var errors = ValidateInjector<TMarker>(injected).ToList();
+        var errors = ValidateInjector(injected).ToList();
         if (injected == null || errors.Count > 0) {
             throw new ValidationException("Failed to resolve injected method. See errors for details.", errors);
         }
@@ -48,7 +48,7 @@ public static class MethodPatcher
         return (asm, type) => ctx.Execute(asm, type);
     }
 
-    private static IEnumerable<string> ValidateInjector<TMarker>(MethodInfo? method) {
+    private static IEnumerable<string> ValidateInjector(MethodInfo? method) {
         if (method == null) {
             yield return "Injected method must be public and static.";
             yield break;
@@ -63,8 +63,8 @@ public static class MethodPatcher
         }
 
         var pars = method.GetParameters();
-        if (pars.Length != 1 || !pars[0].ParameterType.IsAssignableFrom(typeof(TMarker))) {
-            yield return $"Injected method must have single parameter assignable from {typeof(TMarker)}.";
+        if (pars.Length != 1 || pars[0].ParameterType != typeof(object)) {
+            yield return $"Injected method must have single object parameter.";
         }
     }
 

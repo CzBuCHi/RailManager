@@ -1,8 +1,8 @@
-{
-  "profiles": {
-    "Railroader.ModsManager.Installer": {
-      "commandName": "Project",
-      "workingDirectory": "c:\\projects\\Railroader\\Railroader.ModsManager\\root\\"
-    }
-  }
-}
+{ 
+  "profiles": { 
+    "Railroader.ModsManager.Installer": { 
+      "commandName": "Project", 
+      "workingDirectory": "c:\\Program Files (x86)\\Steam\\steamapps\\common\\Railroader" 
+    } 
+  } 
+} 

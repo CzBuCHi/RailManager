@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Newtonsoft.Json.Linq;
-using RailManager.Services;
+using RailManager.Extensions;
 using RailManager.Wrappers.System.IO;
+using Serilog;
 using Path = System.IO.Path;
 
 namespace RailManager.Features;
@@ -28,27 +29,24 @@ public static class ModDefinitionLoader
     ///     Creates a default delegate instance that loads all mod definitions
     ///     using real file system and directory operations.
     /// </summary>
-    /// <param name="logger">
-    ///     The <see cref="IMemoryLogger" /> instance used for diagnostic output.
-    /// </param>
     /// <returns>
     ///     A <see cref="LoadDefinitionsDelegate" /> that can be invoked to load mod definitions.
     /// </returns>
     [ExcludeFromCodeCoverage]
-    public static LoadDefinitionsDelegate Create(IMemoryLogger logger) =>
-        () => LoadDefinitions(logger, FileSystem.Instance);
+    public static LoadDefinitionsDelegate LoadDefinitions =>
+        () => LoadDefinitionsCore(Log.Logger.ForSourceContext(), FileSystem.Instance);
 
     /// <summary>
     ///     Loads all valid <see cref="ModDefinition" /> instances from the <c>Mods</c> directory.
     /// </summary>
-    /// <param name="logger"> The <see cref="IMemoryLogger" /> used for warnings, informational messages, and errors. </param>
+    /// <param name="logger"> The <see cref="ILogger" /> used for warnings, informational messages, and errors. </param>
     /// <param name="fileSystem"></param>
     /// <returns>
     ///     An array of valid, distinct <see cref="ModDefinition" /> objects.
     ///     If the <c>Mods</c> directory is missing or no valid definitions are found, an empty array is returned.
     /// </returns>
-    public static ModDefinition[] LoadDefinitions(
-        IMemoryLogger logger,
+    public static ModDefinition[] LoadDefinitionsCore(
+        ILogger logger,
         IFileSystem fileSystem
     ) {
         var modDefinitions = new Dictionary<string, ModDefinition>(StringComparer.OrdinalIgnoreCase);

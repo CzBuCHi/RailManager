@@ -1,72 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
-using RailManager.Behaviors;
 using RailManager.Extensions;
-using RailManager.Services;
 using RailManager.Wrappers.HarmonyLib;
 using Serilog;
-using UnityEngine;
-using ILogger = Serilog.ILogger;
 
 namespace RailManager.Features;
 
-public static class Bootstrapper
+public static class ModLoader
 {
-    public static IReadOnlyList<ModDefinition> ModDefinitions { get; internal set; } = [];
+    public static Mod[] LoadMods(IReadOnlyList<ModDefinition> modDefinitions) => LoadMods(
+        Log.Logger.ForSourceContext(),
+        modDefinitions,
+        ModDefinitionValidator.Create,
+        CodeCompiler.Create(),
+        CodePatcher.Create(),
+        PluginManager.CreateLoader,
+        HarmonyWrapper.CreateWrapper("Railroader.ModManager")
+    );
 
-    [ExcludeFromCodeCoverage]
-    public static void Execute() {
-        var gameObject = new GameObject("ModManagerBootstrapper");
-        gameObject.AddComponent<ManagerBootstrapperBehaviour>();
-    }
-
-    [ExcludeFromCodeCoverage]
-    internal static void ExecuteCore() {
-        var memoryLogger = new MemoryLogger();
-        Log.Logger = memoryLogger;
-
-        Execute(
-            ModExtractor.GetExtractor(memoryLogger),
-            ModDefinitionLoader.Create(memoryLogger),
-            HarmonyWrapper.CreateWrapper("Railroader.ModManager"),
-            CreateManagerBehaviour
-        );
-    }
-
-    public static void Execute(ModExtractionAction extractMods, LoadDefinitionsDelegate loadDefinitions, IHarmony factory, Action createManagerBehaviour) {
-        extractMods();
-        ModDefinitions = loadDefinitions();
-
-        factory.PatchCategory(typeof(ModManager).Assembly, "LogManager");
-
-        createManagerBehaviour();
-    }
-
-    [ExcludeFromCodeCoverage]
-    private static void CreateManagerBehaviour() {
-        var gameObject = new GameObject("ModManager");
-        gameObject.SetActive(false);
-        gameObject.AddComponent<ManagerBehaviour>();
-        gameObject.SetActive(true);
-    }
-
-    [ExcludeFromCodeCoverage]
-    public static void LoadMods() =>
-        LoadMods(
-            Log.Logger.ForSourceContext(),
-            ModDefinitions,
-            ModDefinitionValidator.Create,
-            CodeCompiler.Create(),
-            CodePatcher.Create(),
-            PluginManager.CreateLoader,
-            HarmonyWrapper.CreateWrapper("Railroader.ModManager")
-        );
-
-    internal static void LoadMods(
+    internal static Mod[] LoadMods(
         ILogger logger,
         IReadOnlyList<ModDefinition> modDefinitions,
         ValidateMods modDefinitionValidator,
@@ -77,7 +32,7 @@ public static class Bootstrapper
     ) {
         if (modDefinitions.Count == 0) {
             logger.Information("No mods where found.");
-            return;
+            return [];
         }
 
         logger.Information("Validating mods ...");
@@ -85,7 +40,7 @@ public static class Bootstrapper
 
         if (modDefinitions.Count == 0) {
             logger.Error("Validation error detected. Canceling mod loading.");
-            return;
+            return [];
         }
 
         var mods = new Mod[modDefinitions.Count];
@@ -125,7 +80,8 @@ public static class Bootstrapper
         }
 
         logger.Information("Applying harmony patches ...");
-
         harmony.PatchAllUncategorized(typeof(ModManager).Assembly);
+
+        return mods;
     }
 }

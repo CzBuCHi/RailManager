@@ -91,7 +91,7 @@ public sealed class TestsCodeCompiler
         string[] references = [
             @"C:\Current\Railroader_Data\Managed\Assembly-CSharp.dll",
             @"C:\Current\Railroader_Data\Managed\0Harmony.dll",
-            @"C:\Current\Railroader_Data\Managed\Railroader.ModManager.Interfaces.dll",
+            @"C:\Current\Railroader_Data\Managed\RailManager.Interfaces.dll",
             @"C:\Current\Railroader_Data\Managed\Serilog.dll",
             @"C:\Current\Railroader_Data\Managed\UnityEngine.CoreModule.dll"
         ];
@@ -148,7 +148,7 @@ public sealed class TestsCodeCompiler
         string[] references = [
             @"C:\Current\Railroader_Data\Managed\Assembly-CSharp.dll",
             @"C:\Current\Railroader_Data\Managed\0Harmony.dll",
-            @"C:\Current\Railroader_Data\Managed\Railroader.ModManager.Interfaces.dll",
+            @"C:\Current\Railroader_Data\Managed\RailManager.Interfaces.dll",
             @"C:\Current\Railroader_Data\Managed\Serilog.dll",
             @"C:\Current\Railroader_Data\Managed\UnityEngine.CoreModule.dll"
         ];
@@ -210,7 +210,7 @@ public sealed class TestsCodeCompiler
         string[] expectedReferences = [
             @"C:\Current\Railroader_Data\Managed\Assembly-CSharp.dll",
             @"C:\Current\Railroader_Data\Managed\0Harmony.dll",
-            @"C:\Current\Railroader_Data\Managed\Railroader.ModManager.Interfaces.dll",
+            @"C:\Current\Railroader_Data\Managed\RailManager.Interfaces.dll",
             @"C:\Current\Railroader_Data\Managed\Serilog.dll",
             @"C:\Current\Railroader_Data\Managed\UnityEngine.CoreModule.dll",
             @"C:\Current\Mods\DepMod1\DepMod1.dll",

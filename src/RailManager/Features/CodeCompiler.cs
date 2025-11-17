@@ -64,7 +64,7 @@ public static class CodeCompiler
     public static string[] DefaultReferenceNames => [
         "Assembly-CSharp",
         "0Harmony",
-        "Railroader.ModManager.Interfaces",
+        "RailManager.Interfaces",
         "Serilog",
         "UnityEngine.CoreModule"
     ];

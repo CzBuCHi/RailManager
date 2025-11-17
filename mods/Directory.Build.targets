@@ -51,6 +51,7 @@
         <PropertyGroup>
             <ZipOutputDir>$(MSBuildProjectDirectory)\..\output</ZipOutputDir>
             <ZipFileName>$(MSBuildProjectName).$(AssemblyVersion).zip</ZipFileName>
+            <ZipFileName Condition=" '$(Configuration)' == 'Debug' ">$(MSBuildProjectName).DEBUG.zip</ZipFileName>
             <ZipFilePath>$(ZipOutputDir)\$(ZipFileName)</ZipFilePath>
 
             <!-- Temporary root for collected source files -->
@@ -83,6 +84,7 @@
             SkipUnchangedFiles="false" />
 
         <!-- Now zip the staged directory -->
+        <!-- ReSharper disable once UnknownTask -->
         <ZipDirectory
             SourceDirectory="$(TempSourceDir)"
             DestinationFile="$(ZipFilePath)"

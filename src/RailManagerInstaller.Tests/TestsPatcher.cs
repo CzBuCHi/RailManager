@@ -12,9 +12,9 @@ namespace RailManagerInstaller.Tests;
 [Collection("ModManagerInstaller")]
 public sealed class TestsPatcher
 {
-    private const string ModManagerInterfaces = "Railroader.ModManager.Interfaces";
-    private const string ModManager = "Railroader.ModManager";
-    private const string ModManagerType = "Railroader.ModManager.ModManager";
+    private const string ModManagerInterfaces = "RailManager.Interfaces";
+    private const string ModManager = "RailManager";
+    private const string ModManagerType = "RailManager.ModManager";
     private const string AssemblyCsharpDll = "Assembly-CSharp";
 
     [Fact]
@@ -330,7 +330,7 @@ public sealed class TestsPatcher
 
         // Assert
         var ex = act.ShouldThrow<InstallerException>();
-        ex.Message.ShouldBe("Could not find Railroader.ModManager.ModManager.Bootstrap method.");
+        ex.Message.ShouldBe("Could not find RailManager.ModManager.Bootstrap method.");
 
         TestHelper.VerifyReceivedCalls(calls);
     }

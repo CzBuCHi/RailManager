@@ -11,9 +11,9 @@ namespace RailManagerInstaller;
 [PublicAPI]
 public static class Patcher
 {
-    private const string ModManagerInterfaces = "Railroader.ModManager.Interfaces";
-    private const string ModManager = "Railroader.ModManager";
-    private const string ModManagerType = "Railroader.ModManager.ModManager";
+    private const string ModManagerInterfaces = "RailManager.Interfaces";
+    private const string ModManager = "RailManager";
+    private const string ModManagerType = "RailManager.ModManager";
     private const string AssemblyCsharpDll = "Assembly-CSharp.dll";
 
     public static Action PatchGame = PatchGameCore;
@@ -35,8 +35,6 @@ public static class Patcher
             AssemblyResolver = resolver
         };
 
-        
-        
         var assemblyCsharpModule = AppServices.ModuleDefinition.ReadModule(assemblyCsharp, readerParameters);
         if (assemblyCsharpModule.AssemblyReferences.Any(o => o.Name == ModManager)) {
             AppServices.Console.WriteLine("Railroader is already patched.", ConsoleColor.DarkYellow);
@@ -46,10 +44,12 @@ public static class Patcher
         InjectModule(assemblyCsharpModule, ModManagerInterfaces, modInterfaces, readerParameters);
         var modManager = InjectModule(assemblyCsharpModule, ModManager, modInjector, readerParameters);
 
-        var hasPatch = PatchLogManager(assemblyCsharpModule, modManager);
-        if (!hasPatch) {
+        var alreadyPatched = PatchLogManager(assemblyCsharpModule, modManager);
+        if (alreadyPatched) {
             return;
         }
+
+
 
         AppServices.File.Copy(assemblyCsharp, assemblyCsharp.Replace(".dll", "_original.dll"));
         assemblyCsharpModule.Write(assemblyCsharp);
@@ -58,8 +58,6 @@ public static class Patcher
     }
 
     private static bool PatchLogManager(IModuleDefinition assemblyCsharp, IModuleDefinition modManager) {
-        // Use Mono.Cecil to create static constructor on Logging.LogManager type that calls Railroader.ModManager.ModManager.Bootstrap()
-
         var logManager = assemblyCsharp.GetType("Logging.LogManager");
         if (logManager == null) {
             throw new InstallerException("Could not find Logging.LogManager type.");
@@ -78,33 +76,28 @@ public static class Patcher
         // Import Bootstrap method
         var bootstrapMethodRef = assemblyCsharp.ImportReference(bootstrapMethod);
 
-        var cctor = logManager.Methods.FirstOrDefault(m => m.Name == ".cctor");
-        if (cctor != null) {
-            // Check if Bootstrap is already called
-            if (cctor.Body.Instructions.Any(o => o.OpCode == OpCodes.Call && o.Operand == bootstrapMethodRef)) {
-                AppServices.Console.WriteLine("Logging.LogManager static constructor already calls ModManager.Bootstrap. Skipping patch.",
-                    ConsoleColor.DarkYellow);
-                return false;
-            }
-        } else {
-            // Create new empty cctor
-            const MethodAttributes cctorAttributes = MethodAttributes.Static | MethodAttributes.Private | MethodAttributes.HideBySig |
-                                                     MethodAttributes.SpecialName | MethodAttributes.RTSpecialName;
-            cctor = new(".cctor", cctorAttributes, assemblyCsharp.TypeSystem.Void);
-            logManager.Methods.Add(cctor);
+        var awake = logManager.Methods.FirstOrDefault(m => m.Name == "Awake");
+        if (awake == null) {
+            throw new InstallerException("Could not find Logging.LogManager.Awake method.");
+        } 
 
-            var il = cctor.Body.GetILProcessor();
-            il.Emit(OpCodes.Ret);
-        }
+        var makeConfiguration = logManager.Methods.FirstOrDefault(m => m.Name == "MakeConfiguration");
+        if (makeConfiguration == null) {
+            throw new InstallerException("Could not find Logging.LogManager.MakeConfiguration method.");
+        } 
 
         // Append Bootstrap call to the end
-        var ilProcessor = cctor.Body.GetILProcessor();
-        var firstInstruction = cctor.Body.Instructions[0]!;
-        var callBootstrap = ilProcessor.Create(OpCodes.Call, bootstrapMethodRef);
+        var ilProcessor      = awake.Body.GetILProcessor();
+        var lastInstruction = awake.Body.Instructions[awake.Body.Instructions.Count - 1]!;
+        var callBootstrap    = ilProcessor.Create(OpCodes.Call, bootstrapMethodRef);
 
         // Insert Bootstrap call before first instruction
-        ilProcessor.InsertBefore(firstInstruction, callBootstrap);
-        return true;
+        ilProcessor.InsertBefore(lastInstruction, callBootstrap);
+
+        // Make MakeConfiguration public so i can call it without reflection...
+        makeConfiguration.IsPublic = true;
+
+        return false;
     }
 
     private static IModuleDefinition InjectModule(IModuleDefinition assemblyCsharpModule, string name, string path, ReaderParameters readerParameters) {

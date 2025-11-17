@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 using NSubstitute;
@@ -53,31 +52,18 @@ public sealed class TestsPluginBase : IAsyncLifetime
         _Sut.IsEnabledChanges.ShouldBeEquivalentTo(new List<bool> { false });
     }
 
-    [Fact]
-    public void EnsureSingleton() {
-        // Act & Assert
-        Should.Throw<InvalidOperationException>(() => new TestPlugin(_ModdingContext, _Mod))
-            .Message.ShouldBe($"Cannot create plugin '{typeof(TestPlugin)}' twice.");
-    }
-
-    [Fact]
-    public void PrematureInstanceAccess() {
-        // Arrange
-        TestPlugin.Cleanup();
-
-        // Act
-        Should.Throw<InvalidOperationException>(() => TestPlugin.Instance)
-            .Message.ShouldBe($"{typeof(TestPlugin)} was not created.");
-    }
-
-    public sealed class TestPlugin(IModdingContext moddingContext, IMod mod) : PluginBase<TestPlugin>(moddingContext, mod)
+    public sealed class TestPlugin : PluginBase
     {
-        private static readonly FieldInfo _IsEnabled = typeof(PluginBase<TestPlugin>).GetField("_IsEnabled", BindingFlags.Instance | BindingFlags.NonPublic)!;
-        private static readonly FieldInfo _Instance  = typeof(PluginBase<TestPlugin>).GetField("_Instance", BindingFlags.Static | BindingFlags.NonPublic)!;
+        public static TestPlugin? Instance { get; private set; }
+
+        public TestPlugin(IModdingContext moddingContext, IMod mod) : base(moddingContext, mod) => Instance = this;
+
+        private static readonly FieldInfo _IsEnabled = typeof(PluginBase).GetField("_IsEnabled", BindingFlags.Instance | BindingFlags.NonPublic)!;
+
 
         public void SetIsEnabled(bool value) => _IsEnabled.SetValue(this, value);
 
-        public static void Cleanup() => _Instance.SetValue(null!, null!);
+        public static void Cleanup() => Instance = null;
 
         public readonly List<bool> IsEnabledChanges = new();
 

@@ -75,22 +75,18 @@ internal static class PluginManager
             yield break;
         }
 
-        var pluginBaseType = typeof(PluginBase<>);
         var types          = assembly.GetTypes();
         foreach (var type in types) {
             if (type.IsAbstract) {
                 continue;
             }
-
-            if (type.BaseType is not { IsGenericType: true } baseType ||
-                baseType.GetGenericTypeDefinition() != pluginBaseType) {
-                if (typeof(IPlugin).IsAssignableFrom(type)) {
+            if (typeof(IPlugin).IsAssignableFrom(type)) {
+                if (!typeof(PluginBase).IsAssignableFrom(type.BaseType!)) {
                     logger.Warning(
-                        "Type {Type} implements IPlugin but does not inherit from PluginBase<> in mod {ModId}",
+                        "Type {Type} implements IPlugin but does not inherit from PluginBase in mod {ModId}",
                         type.FullName, mod.Definition.Identifier);
+                    continue;
                 }
-
-                continue;
             }
 
             var ctor = type.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null!, [typeof(IModdingContext), typeof(IMod)], null!);

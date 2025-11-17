@@ -10,29 +10,15 @@ namespace RailManager.Interfaces;
 ///     This class is intended to be inherited by concrete plugin implementations.
 /// </remarks>
 [PublicAPI]
-public abstract class PluginBase<T> : IPlugin where T : PluginBase<T>
+public abstract class PluginBase : IPlugin
 {
-    private static T? _Instance;
-
     /// <summary>
-    ///     Gets the singleton instance of this plugin type.
-    /// </summary>
-    /// <exception cref="InvalidOperationException"> Thrown if the instance has not been created yet. </exception>
-    public static T Instance => _Instance ?? throw new InvalidOperationException($"{typeof(T)} was not created.");
-
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="PluginBase{T}" /> class.
+    ///     Initializes a new instance of the <see cref="PluginBase" /> class.
     /// </summary>
     /// <param name="moddingContext">The modding context.</param>
     /// <param name="mod">The mod definition.</param>
     /// <exception cref="InvalidOperationException"> Thrown if an instance of this type already exists. </exception>
     protected PluginBase(IModdingContext moddingContext, IMod mod) {
-        if (_Instance != null) {
-            throw new InvalidOperationException($"Cannot create plugin '{GetType()}' twice.");
-        }
-
-        _Instance = (T)this;
-
         ModdingContext = moddingContext;
         Mod = mod;
     }

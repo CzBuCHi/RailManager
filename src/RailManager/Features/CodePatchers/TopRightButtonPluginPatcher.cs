@@ -31,9 +31,12 @@ public static class TopRightButtonPluginPatcher
 
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static TypePatcherDelegate Factory(ILogger logger) {
-        var method = MethodPatcher.Factory<ITopRightButtonPlugin>(logger, typeof(TopRightButtonPluginPatcher),
-                                                                  typeof(PluginBase<>), "OnIsEnabledChanged");
+        var method = MethodPatcher.Factory<ITopRightButtonPlugin>(logger, typeof(TopRightButtonPluginPatcher), typeof(PluginBase), "OnIsEnabledChanged");
         return (assemblyDefinition, typeDefinition) => method(assemblyDefinition, typeDefinition);
+    }
+
+    public static void OnIsEnabledChanged(object plugin) {
+        OnIsEnabledChangedCore((ITopRightButtonPlugin)plugin);
     }
 
     /// <summary>
@@ -43,7 +46,7 @@ public static class TopRightButtonPluginPatcher
     /// <param name="plugin">The plugin instance. Must not be null.</param>
     /// <remarks>Method called from plugin.</remarks>
     [UsedImplicitly]
-    public static void OnIsEnabledChanged(ITopRightButtonPlugin plugin) {
+    public static void OnIsEnabledChangedCore(ITopRightButtonPlugin plugin) {
         var topRightArea = Object.FindObjectOfType<TopRightArea>();
         if (topRightArea == null) {
             return;
@@ -63,7 +66,6 @@ public static class TopRightButtonPluginPatcher
                 _States[plugin] = new(true, gameObject);
             } catch (Exception exc) {
                 logger.Error(exc, "Failed to add button to top right area.");
-                throw;
             }
         } else {
             logger.Information("Removing TopRightButton patch for mod {ModId}", plugin.Mod.Definition.Identifier);
@@ -97,11 +99,8 @@ public static class TopRightButtonPluginPatcher
     }
 
     private static Texture2D LoadButtonTexture(ITopRightButtonPlugin plugin) {
-        var pluginType = plugin.GetType();
-        var path       = $"{pluginType.Namespace}.{plugin.IconName}";
-
         byte[] bytes;
-        using (var stream = pluginType.Assembly.GetManifestResourceStream(path)) {
+        using (var stream = plugin.GetType().Assembly.GetManifestResourceStream(plugin.IconName)) {
             using (var ms = new MemoryStream()) {
                 stream!.CopyTo(ms);
                 bytes = ms.ToArray();

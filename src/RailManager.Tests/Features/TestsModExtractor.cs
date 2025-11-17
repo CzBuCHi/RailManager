@@ -7,7 +7,7 @@ using MockFileSystem;
 using Newtonsoft.Json;
 using NSubstitute;
 using RailManager.Features;
-using RailManager.Services;
+using Serilog;
 using Shouldly;
 
 namespace RailManager.Tests.Features;
@@ -15,8 +15,8 @@ namespace RailManager.Tests.Features;
 public sealed class TestsModExtractor
 {
     [DebuggerStepThrough]
-    private static void ExtractAll(IMemoryLogger logger, MemoryFileSystem memoryFs) =>
-        ModExtractor.ExtractAll(logger, memoryFs);
+    private static void ExtractAll(ILogger logger, MemoryFileSystem memoryFs) =>
+        ModExtractor.ExtractAllCore(logger, memoryFs);
 
     [Fact]
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
@@ -31,7 +31,7 @@ public sealed class TestsModExtractor
             { @"C:\Mods\Mod1.zip", zipFile }
         };
 
-        var logger = Substitute.For<IMemoryLogger>();
+        var logger = Substitute.For<ILogger>();
 
         var expected = new MemoryFileSystem {
             { @"C:\Mods\Mod1.bak", zipFile },
@@ -56,7 +56,7 @@ public sealed class TestsModExtractor
             { @"C:\Mods\Mod1.zip", "ZIP" }
         };
 
-        var logger = Substitute.For<IMemoryLogger>();
+        var logger = Substitute.For<ILogger>();
 
         var expected = new MemoryFileSystem {
             { @"C:\Mods\Mod1.zip", "ZIP" }
@@ -85,7 +85,7 @@ public sealed class TestsModExtractor
             @"C:\Mods\MyMod"
         };
 
-        var logger = Substitute.For<IMemoryLogger>();
+        var logger = Substitute.For<ILogger>();
 
         var expected = new MemoryFileSystem {
             { @"C:\Mods\Mod1.dup", zipFile },
@@ -114,7 +114,7 @@ public sealed class TestsModExtractor
             { @"C:\Mods\Mod1.zip", zipFile }
         };
 
-        var logger = Substitute.For<IMemoryLogger>();
+        var logger = Substitute.For<ILogger>();
 
         var expected = new MemoryFileSystem {
             { @"C:\Mods\Mod1.zip", zipFile }
@@ -142,7 +142,7 @@ public sealed class TestsModExtractor
             { @"C:\Mods\Mod1.zip", zipFile }
         };
 
-        var logger = Substitute.For<IMemoryLogger>();
+        var logger = Substitute.For<ILogger>();
 
         var expected = new MemoryFileSystem {
             { @"C:\Mods\Mod1.zip", zipFile }
@@ -169,7 +169,7 @@ public sealed class TestsModExtractor
             { @"C:\Mods\Mod1.zip", zipFile }
         };
 
-        var logger = Substitute.For<IMemoryLogger>();
+        var logger = Substitute.For<ILogger>();
 
         var expected = new MemoryFileSystem {
             { @"C:\Mods\Mod1.zip", zipFile }
@@ -193,7 +193,7 @@ public sealed class TestsModExtractor
             { @"C:\Mods\Mod1.txt", [1, 2, 3] }
         };
 
-        var logger = Substitute.For<IMemoryLogger>();
+        var logger = Substitute.For<ILogger>();
 
         var expected = new MemoryFileSystem {
             { @"C:\Mods\Mod1.txt", [1, 2, 3] }
@@ -224,7 +224,7 @@ public sealed class TestsModExtractor
             { @"C:\Mods\Mod1.zip", zipFile2 }
         };
 
-        var logger = Substitute.For<IMemoryLogger>();
+        var logger = Substitute.For<ILogger>();
 
         var expected = new MemoryFileSystem {
             { @"C:\Mods\Mod1.bak", zipFile2 },
@@ -248,7 +248,7 @@ public sealed class TestsModExtractor
             { @"C:\Mods\Mod1.zip", [1, 2, 3] }
         };
 
-        var logger = Substitute.For<IMemoryLogger>();
+        var logger = Substitute.For<ILogger>();
 
         var expected = new MemoryFileSystem {
             { @"C:\Mods\Mod1.zip", [1, 2, 3] }
@@ -277,7 +277,7 @@ public sealed class TestsModExtractor
             { @"C:\Mods\Mod1.bak", "BAK" },
         };
 
-        var logger = Substitute.For<IMemoryLogger>();
+        var logger = Substitute.For<ILogger>();
 
         var expected = new MemoryFileSystem {
             { @"C:\Mods\Mod1.bak", "BAK" },
@@ -309,7 +309,7 @@ public sealed class TestsModExtractor
             { @"C:\Mods\Mod1.bak", "BAK" },
         };
 
-        var logger = Substitute.For<IMemoryLogger>();
+        var logger = Substitute.For<ILogger>();
 
         var expected = new MemoryFileSystem {
             { @"C:\Mods\Mod1.bak", "BAK" },
@@ -319,7 +319,7 @@ public sealed class TestsModExtractor
         };
 
         // Act
-        ModExtractor.ExtractAll(logger, memoryFs);
+        ModExtractor.ExtractAllCore(logger, memoryFs);
 
         // Assert
         memoryFs.ShouldBeEquivalentTo(expected);
@@ -336,7 +336,7 @@ public sealed class TestsModExtractor
             { "data.bin", new byte[] { 1,2,3 } }
         };
         var fs     = new MemoryFileSystem { { @"C:\Mods\X.zip", zip } };
-        var logger = Substitute.For<IMemoryLogger>();
+        var logger = Substitute.For<ILogger>();
 
         // Act
         ExtractAll(logger, fs);
@@ -352,7 +352,7 @@ public sealed class TestsModExtractor
         // Arrange
         var zip    = new ZipFileSystem { { "Definition.json", "{ \"id\": \"M\", \"version\": \"1.0\", \"name\": \"X\" }" } };
         var fs     = new MemoryFileSystem { { @"C:\Mods\X.zip", zip } };
-        var logger = Substitute.For<IMemoryLogger>();
+        var logger = Substitute.For<ILogger>();
 
         // Act
         ExtractAll(logger, fs);
@@ -372,7 +372,7 @@ public sealed class TestsModExtractor
             { @"C:\Mods\X.bak",  "occupied" },
             { @"C:\Mods\X.bak1", "occupied" }
         };
-        var logger = Substitute.For<IMemoryLogger>();
+        var logger = Substitute.For<ILogger>();
 
         // Act
         ExtractAll(logger, fs);

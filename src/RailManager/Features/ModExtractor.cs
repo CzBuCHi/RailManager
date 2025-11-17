@@ -4,8 +4,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
-using RailManager.Services;
+using RailManager.Extensions;
 using RailManager.Wrappers.System.IO;
+using RailManager.Wrappers.System.IO.Compression;
+using Serilog;
 
 namespace RailManager.Features;
 
@@ -23,11 +25,10 @@ public static class ModExtractor
     /// <summary>
     ///     Creates a <see cref="ModExtractionAction" /> that extracts all mod archives using the specified logger.
     /// </summary>
-    /// <param name="logger">The logger used to record extraction progress and errors.</param>
     /// <returns>A delegate that, when invoked, performs the full extraction process.</returns>
     [ExcludeFromCodeCoverage]
-    public static ModExtractionAction GetExtractor(IMemoryLogger logger) =>
-        () => ExtractAll(logger, FileSystem.Instance);
+    public static ModExtractionAction ExtractAll =>
+        () => ExtractAllCore(Log.Logger.ForSourceContext(), FileSystem.Instance);
 
     /// <summary>
     ///     Extracts all <c>*.zip</c> files from the <c>Mods</c> directory that contain a valid <c>Definition.json</c>.
@@ -39,7 +40,7 @@ public static class ModExtractor
     ///     Successfully extracted archives are moved to a <c>.bak</c> backup with a unique name if needed.
     /// </remarks>
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public static void ExtractAll(IMemoryLogger logger, IFileSystem fileSystem) {
+    public static void ExtractAllCore(ILogger logger, IFileSystem fileSystem) {
         var modsDirectory = Path.Combine(fileSystem.Directory.GetCurrentDirectory(), "Mods");
         var zipFiles      = fileSystem.DirectoryInfo(modsDirectory).EnumerateFiles("*.zip");
 
@@ -77,11 +78,15 @@ public static class ModExtractor
     ///     </list>
     ///     On success, the archive is moved to a <c>.bak</c> backup.
     /// </remarks>
-    private static void TryExtractOne(IMemoryLogger logger, IFileSystem fileSystem, IFileInfo zipFileInfo, string modsDirectory) {
+    private static void TryExtractOne(ILogger logger, IFileSystem fileSystem, IFileInfo zipFileInfo, string modsDirectory) {
         logger.Information("Processing mod archive {ZipPath} for extraction.", zipFileInfo.FullName);
 
-        using (var archive = fileSystem.ZipFile.OpenRead(zipFileInfo.FullName)) {
-            var definitionEntry = archive.GetEntry("Definition.json");
+        var finalExtension = ".bak";
+
+        IZipArchive? archive = null;
+        try {
+            archive = fileSystem.ZipFile.OpenRead(zipFileInfo.FullName);
+            var         definitionEntry = archive.GetEntry("Definition.json");
             if (definitionEntry == null) {
                 logger.Error("Skipping archive {ZipPath}: Missing 'Definition.json'.", zipFileInfo.FullName);
                 return;
@@ -103,7 +108,7 @@ public static class ModExtractor
 
             if (fileSystem.Directory.Exists(extractPath)) {
                 logger.Warning("Extraction path {ExtractPath} already exists – skipping mod {ModId}.", extractPath, modDefinition.Identifier);
-                MoveToBackup(zipFileInfo, logger, ".dup", fileSystem.File);
+                finalExtension = ".dup";
                 return;
             }
 
@@ -111,9 +116,12 @@ public static class ModExtractor
 
             logger.Information("Successfully extracted mod {ModId} from {ZipPath} to {ExtractPath}.", modDefinition.Identifier, zipFileInfo.FullName,
                 extractPath);
-        }
+        } finally {
+            archive?.Dispose();
 
-        MoveToBackup(zipFileInfo, logger, ".bak", fileSystem.File);
+            logger.Debug("Renaming {ZipPath} to backup.", zipFileInfo.FullName);
+            MoveToBackup(zipFileInfo, logger, finalExtension, fileSystem.File);
+        }
     }
 
     /// <summary>
@@ -123,7 +131,7 @@ public static class ModExtractor
     /// <param name="json">The JSON string from <c>Definition.json</c>.</param>
     /// <param name="zipPath">The path of the ZIP file, used for logging context.</param>
     /// <returns>The deserialized <see cref="ModDefinition" />, or <c>null</c> if parsing fails.</returns>
-    private static ModDefinition? TryDeserialize(IMemoryLogger logger, string json, string zipPath) {
+    private static ModDefinition? TryDeserialize(ILogger logger, string json, string zipPath) {
         try {
             return JsonConvert.DeserializeObject<ModDefinition>(json);
         } catch (JsonException ex) {
@@ -145,7 +153,7 @@ public static class ModExtractor
     ///     If a file with the target name already exists, a numeric suffix is appended
     ///     (e.g., <c>mod.zip.bak</c> → <c>mod.zip.bak1</c>) until a unique name is found.
     /// </remarks>
-    private static void MoveToBackup(IFileInfo zipFile, IMemoryLogger logger, string extension, IFileStatic file) {
+    private static void MoveToBackup(IFileInfo zipFile, ILogger logger, string extension, IFileStatic file) {
         var basePath   = Path.ChangeExtension(zipFile.FullName, extension);
         var backupPath = basePath;
 

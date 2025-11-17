@@ -24,9 +24,12 @@ public sealed class HarmonyPluginPatcher
 
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static TypePatcherDelegate Factory(ILogger logger) {
-        var method = MethodPatcher.Factory<IHarmonyPlugin>(logger, typeof(HarmonyPluginPatcher), typeof(PluginBase<>),
-                                                           "OnIsEnabledChanged");
+        var method = MethodPatcher.Factory<IHarmonyPlugin>(logger, typeof(HarmonyPluginPatcher), typeof(PluginBase), "OnIsEnabledChanged");
         return (assemblyDefinition, typeDefinition) => method(assemblyDefinition, typeDefinition);
+    }
+
+    public static void OnIsEnabledChanged(object plugin) {
+        OnIsEnabledChangedCore((IHarmonyPlugin)plugin);
     }
 
     /// <summary>
@@ -36,7 +39,7 @@ public sealed class HarmonyPluginPatcher
     /// <param name="plugin">The plugin instance. Must not be null.</param>
     /// <remarks>Method called from plugin.</remarks>
     [UsedImplicitly]
-    public static void OnIsEnabledChanged(IHarmonyPlugin plugin) {
+    private static void OnIsEnabledChangedCore(IHarmonyPlugin plugin) {
         var context = (ModdingContext)plugin.ModdingContext;
 
         var state = _States.GetOrAdd(plugin,
