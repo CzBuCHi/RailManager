@@ -12,9 +12,10 @@ namespace RailManagerInstaller;
 public static class Patcher
 {
     private const string ModManagerInterfaces = "RailManager.Interfaces";
-    private const string ModManager = "RailManager";
-    private const string ModManagerType = "RailManager.ModManager";
-    private const string AssemblyCsharpDll = "Assembly-CSharp.dll";
+    private const string ModManager           = "RailManager";
+    private const string ModManagerType       = "RailManager.ModManager";
+    private const string LogManagerType       = "Logging.LogManager";
+    private const string AssemblyCsharpDll    = "Assembly-CSharp.dll";
 
     public static Action PatchGame = PatchGameCore;
     
@@ -44,23 +45,18 @@ public static class Patcher
         InjectModule(assemblyCsharpModule, ModManagerInterfaces, modInterfaces, readerParameters);
         var modManager = InjectModule(assemblyCsharpModule, ModManager, modInjector, readerParameters);
 
-        var alreadyPatched = PatchLogManager(assemblyCsharpModule, modManager);
-        if (alreadyPatched) {
-            return;
-        }
-
-
-
+        PatchLogManager(assemblyCsharpModule, modManager);
+        
         AppServices.File.Copy(assemblyCsharp, assemblyCsharp.Replace(".dll", "_original.dll"));
         assemblyCsharpModule.Write(assemblyCsharp);
         AppServices.File.SetLastWriteTime(assemblyCsharp.Replace(".dll", "_original.dll"), AppServices.File.GetLastWriteTime(assemblyCsharp));
         AppServices.Console.WriteLine("Successfully patched game.");
     }
 
-    private static bool PatchLogManager(IModuleDefinition assemblyCsharp, IModuleDefinition modManager) {
-        var logManager = assemblyCsharp.GetType("Logging.LogManager");
+    private static void PatchLogManager(IModuleDefinition assemblyCsharp, IModuleDefinition modManager) {
+        var logManager = assemblyCsharp.GetType(LogManagerType);
         if (logManager == null) {
-            throw new InstallerException("Could not find Logging.LogManager type.");
+            throw new InstallerException($"Could not find {LogManagerType} type.");
         }
 
         var modManagerType = modManager.GetType(ModManagerType);
@@ -73,31 +69,28 @@ public static class Patcher
             throw new InstallerException($"Could not find {ModManagerType}.Bootstrap method.");
         }
 
-        // Import Bootstrap method
-        var bootstrapMethodRef = assemblyCsharp.ImportReference(bootstrapMethod);
-
         var awake = logManager.Methods.FirstOrDefault(m => m.Name == "Awake");
         if (awake == null) {
-            throw new InstallerException("Could not find Logging.LogManager.Awake method.");
-        } 
+            throw new InstallerException($"Could not find {LogManagerType}.Awake method.");
+        }
 
         var makeConfiguration = logManager.Methods.FirstOrDefault(m => m.Name == "MakeConfiguration");
         if (makeConfiguration == null) {
-            throw new InstallerException("Could not find Logging.LogManager.MakeConfiguration method.");
-        } 
+            throw new InstallerException($"Could not find {LogManagerType}.MakeConfiguration method.");
+        }
 
         // Append Bootstrap call to the end
-        var ilProcessor      = awake.Body.GetILProcessor();
-        var lastInstruction = awake.Body.Instructions[awake.Body.Instructions.Count - 1]!;
-        var callBootstrap    = ilProcessor.Create(OpCodes.Call, bootstrapMethodRef);
+        var bootstrapMethodRef = assemblyCsharp.ImportReference(bootstrapMethod);
+
+        var ilProcessor        = awake.Body.GetILProcessor();
+        var lastInstruction    = awake.Body.Instructions[awake.Body.Instructions.Count - 1]!;
+        var callBootstrap      = ilProcessor.Create(OpCodes.Call, bootstrapMethodRef);
 
         // Insert Bootstrap call before first instruction
         ilProcessor.InsertBefore(lastInstruction, callBootstrap);
 
         // Make MakeConfiguration public so i can call it without reflection...
         makeConfiguration.IsPublic = true;
-
-        return false;
     }
 
     private static IModuleDefinition InjectModule(IModuleDefinition assemblyCsharpModule, string name, string path, ReaderParameters readerParameters) {

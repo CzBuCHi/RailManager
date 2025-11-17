@@ -1,9 +1,6 @@
 ﻿using System;
-using System.IO;
-using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
-using NSubstitute;
 using RailManagerInstaller.Tests.Utils;
 using Shouldly;
 
@@ -13,9 +10,10 @@ namespace RailManagerInstaller.Tests;
 public sealed class TestsPatcher
 {
     private const string ModManagerInterfaces = "RailManager.Interfaces";
-    private const string ModManager = "RailManager";
-    private const string ModManagerType = "RailManager.ModManager";
-    private const string AssemblyCsharpDll = "Assembly-CSharp";
+    private const string ModManager           = "RailManager";
+    private const string ModManagerType       = "RailManager.ModManager";
+    private const string LogManagerType       = "Logging.LogManager";
+    private const string AssemblyCsharpDll    = "Assembly-CSharp";
 
     [Fact]
     public void WhenModManagerInterfacesDllNotFound_ThrowsInstallerException() {
@@ -30,8 +28,7 @@ public sealed class TestsPatcher
         var act = Patcher.PatchGame;
 
         // Assert
-        act.ShouldThrow<InstallerException>()
-            .Message.ShouldBe($"Could not locate file '{ModManagerInterfaces}.dll'.");
+        act.ShouldThrow<InstallerException>().Message.ShouldBe($"Could not locate file '{ModManagerInterfaces}.dll'.");
 
         TestHelper.VerifyReceivedCalls(calls);
     }
@@ -50,8 +47,7 @@ public sealed class TestsPatcher
         var act = Patcher.PatchGame;
 
         // Assert
-        act.ShouldThrow<InstallerException>()
-            .Message.ShouldBe($"Could not locate file '{ModManager}.dll'.");
+        act.ShouldThrow<InstallerException>().Message.ShouldBe($"Could not locate file '{ModManager}.dll'.");
 
         TestHelper.VerifyReceivedCalls(calls);
     }
@@ -71,8 +67,7 @@ public sealed class TestsPatcher
         var act = Patcher.PatchGame;
 
         // Assert
-        act.ShouldThrow<InstallerException>()
-            .Message.ShouldBe($"Could not locate file '{AssemblyCsharpDll}.dll'.");
+        act.ShouldThrow<InstallerException>().Message.ShouldBe($"Could not locate file '{AssemblyCsharpDll}.dll'.");
 
         TestHelper.VerifyReceivedCalls(calls);
     }
@@ -94,8 +89,7 @@ public sealed class TestsPatcher
         var act = Patcher.PatchGame;
 
         // Assert
-        act.ShouldThrow<InstallerException>()
-            .Message!.ShouldContain("Simulated ReadModule failure");
+        act.ShouldThrow<InstallerException>().Message!.ShouldContain("Simulated ReadModule failure");
 
         TestHelper.VerifyReceivedCalls(calls);
     }
@@ -143,8 +137,7 @@ public sealed class TestsPatcher
         var act = Patcher.PatchGame;
 
         // Assert
-        var ex = act.ShouldThrow<InstallerException>();
-        ex.Message.ShouldBe("Simulated ReadModule failure");
+        act.ShouldThrow<InstallerException>().Message.ShouldBe("Simulated ReadModule failure");
 
         TestHelper.VerifyReceivedCalls(calls);
     }
@@ -179,39 +172,11 @@ public sealed class TestsPatcher
     }
 
     [Fact]
-    public void WhenInjectModuleFailsOnModManager_ThrowsInstallerException() {
+    public void WhenGetTypeLogManagerFails_ThrowsInstallerException() {
         // Arrange
         TestHelper.PrepareAppServices();
 
-        var csharpModule = TestHelper.CreateModuleDefinition(AssemblyCsharpDll);
-        var modManagerInterfacesModule = TestHelper.CreateModuleDefinition(ModManagerInterfaces);
-
-        Action[] calls = [
-            TestHelper.GetCurrentDirectoryCall,
-            TestHelper.FileExistsCall(ModManagerInterfaces, true),
-            TestHelper.FileExistsCall(ModManager, true),
-            TestHelper.FileExistsCall(AssemblyCsharpDll, true),
-            TestHelper.ReadModuleCall(AssemblyCsharpDll, csharpModule),
-            TestHelper.ReadModuleCall(ModManagerInterfaces, modManagerInterfacesModule),
-            TestHelper.ReadModuleCall(ModManager, new InstallerException("Simulated ReadModule failure"))
-        ];
-
-        // Act
-        var act = Patcher.PatchGame;
-
-        // Assert
-        var ex = act.ShouldThrow<InstallerException>();
-        ex.Message.ShouldBe("Simulated ReadModule failure");
-
-        TestHelper.VerifyReceivedCalls(calls);
-    }
-
-    [Fact]
-    public void WhenInjectModManagerSucceeds_AddsAssemblyReference() {
-        // Arrange
-        TestHelper.PrepareAppServices();
-
-        var csharpModule = TestHelper.CreateModuleDefinition(AssemblyCsharpDll);
+        var csharpModule               = TestHelper.CreateModuleDefinition(AssemblyCsharpDll);
         var modManagerInterfacesModule = TestHelper.CreateModuleDefinition(ModManagerInterfaces);
         var modManagerModule = TestHelper.CreateModuleDefinition(ModManager);
 
@@ -223,94 +188,27 @@ public sealed class TestsPatcher
             TestHelper.ReadModuleCall(AssemblyCsharpDll, csharpModule),
             TestHelper.ReadModuleCall(ModManagerInterfaces, modManagerInterfacesModule),
             TestHelper.ReadModuleCall(ModManager, modManagerModule),
-            TestHelper.GetTypeCall(csharpModule, "Logging.LogManager", new TestSuicide())
+            TestHelper.GetTypeCall(csharpModule, LogManagerType, (TypeDefinition?)null)
         ];
 
         // Act
         var act = Patcher.PatchGame;
 
         // Assert
-        act.ShouldThrow<TestSuicide>();
-
-        TestHelper.VerifyReceivedCalls(calls);
-
-        csharpModule.AssemblyReferences.ShouldContain(o => o.Name == ModManager);
-    }
-
-    [Fact]
-    public void WhenLogManagerTypeMissing_ThrowsInstallerException() {
-        // Arrange
-        TestHelper.PrepareAppServices();
-
-        var csharpModule = TestHelper.CreateModuleDefinition(AssemblyCsharpDll);
-        var modManagerInterfacesModule = TestHelper.CreateModuleDefinition(ModManagerInterfaces);
-        var modManagerModule = TestHelper.CreateModuleDefinition(ModManager);
-
-        Action[] calls = [
-            TestHelper.GetCurrentDirectoryCall,
-            TestHelper.FileExistsCall(ModManagerInterfaces, true),
-            TestHelper.FileExistsCall(ModManager, true),
-            TestHelper.FileExistsCall(AssemblyCsharpDll, true),
-            TestHelper.ReadModuleCall(AssemblyCsharpDll, csharpModule),
-            TestHelper.ReadModuleCall(ModManagerInterfaces, modManagerInterfacesModule),
-            TestHelper.ReadModuleCall(ModManager, modManagerModule),
-            TestHelper.GetTypeCall(csharpModule, "Logging.LogManager", (TypeDefinition?)null)
-        ];
-
-        // Act
-        var act = Patcher.PatchGame;
-
-        // Assert
-        var ex = act.ShouldThrow<InstallerException>();
-        ex.Message.ShouldBe("Could not find Logging.LogManager type.");
+        act.ShouldThrow<InstallerException>().Message.ShouldBe($"Could not find {LogManagerType} type.");
 
         TestHelper.VerifyReceivedCalls(calls);
     }
 
     [Fact]
-    public void WhenModManagerTypeMissing_ThrowsInstallerException() {
+    public void WhenGetTypeModManagerFails_ThrowsInstallerException() {
         // Arrange
         TestHelper.PrepareAppServices();
 
-        var csharpModule = TestHelper.CreateModuleDefinition(AssemblyCsharpDll);
+        var csharpModule               = TestHelper.CreateModuleDefinition(AssemblyCsharpDll);
         var modManagerInterfacesModule = TestHelper.CreateModuleDefinition(ModManagerInterfaces);
-        var modManagerModule = TestHelper.CreateModuleDefinition(ModManager);
-
-        var logManager = new TypeDefinition("Logging", "LogManager", TypeAttributes.Class);
-
-        Action[] calls = [
-            TestHelper.GetCurrentDirectoryCall,
-            TestHelper.FileExistsCall(ModManagerInterfaces, true),
-            TestHelper.FileExistsCall(ModManager, true),
-            TestHelper.FileExistsCall(AssemblyCsharpDll, true),
-            TestHelper.ReadModuleCall(AssemblyCsharpDll, csharpModule),
-            TestHelper.ReadModuleCall(ModManagerInterfaces, modManagerInterfacesModule),
-            TestHelper.ReadModuleCall(ModManager, modManagerModule),
-            TestHelper.GetTypeCall(csharpModule, "Logging.LogManager", logManager),
-            TestHelper.GetTypeCall(modManagerModule, ModManagerType, (TypeDefinition?)null)
-        ];
-
-        // Act
-        var act = Patcher.PatchGame;
-
-        // Assert
-        var ex = act.ShouldThrow<InstallerException>();
-        ex.Message.ShouldBe($"Could not find {ModManagerType} type.");
-
-        TestHelper.VerifyReceivedCalls(calls);
-    }
-
-    [Fact]
-    public void WhenBootstrapMethodMissing_ThrowsInstallerException() {
-        // Arrange
-        TestHelper.PrepareAppServices();
-
-        var csharpModule = TestHelper.CreateModuleDefinition(AssemblyCsharpDll);
-        var modManagerInterfacesModule = TestHelper.CreateModuleDefinition(ModManagerInterfaces);
-        var modManagerModule = TestHelper.CreateModuleDefinition(ModManager);
-
-        var logManagerType = new TypeDefinition("Logging", "LogManager", TypeAttributes.Class);
-        var modManagerType = new TypeDefinition("Railroader.ModManager", "ModManager", TypeAttributes.Class);
+        var modManagerModule           = TestHelper.CreateModuleDefinition(ModManager);
+        var logManagerType             = new TypeDefinition("Logging", "LogManager", TypeAttributes.Class | TypeAttributes.Public);
 
         Action[] calls = [
             TestHelper.GetCurrentDirectoryCall,
@@ -321,33 +219,28 @@ public sealed class TestsPatcher
             TestHelper.ReadModuleCall(ModManagerInterfaces, modManagerInterfacesModule),
             TestHelper.ReadModuleCall(ModManager, modManagerModule),
             TestHelper.GetTypeCall(csharpModule, "Logging.LogManager", logManagerType),
-            TestHelper.GetTypeCall(modManagerModule, ModManager + ".ModManager", modManagerType),
-            TestHelper.FindBootstrapMethod(modManagerType)
+            TestHelper.GetTypeCall(modManagerModule, "RailManager.ModManager", (TypeDefinition?)null)
         ];
 
         // Act
         var act = Patcher.PatchGame;
 
         // Assert
-        var ex = act.ShouldThrow<InstallerException>();
-        ex.Message.ShouldBe("Could not find RailManager.ModManager.Bootstrap method.");
+        act.ShouldThrow<InstallerException>().Message.ShouldBe("Could not find RailManager.ModManager type.");
 
         TestHelper.VerifyReceivedCalls(calls);
     }
 
     [Fact]
-    public void WhenImportReferenceThrows_ThrowsInstallerException() {
+    public void WhenGetMethodBootstrapFails_ThrowsInstallerException() {
         // Arrange
         TestHelper.PrepareAppServices();
 
-        var csharpModule = TestHelper.CreateModuleDefinition(AssemblyCsharpDll);
+        var csharpModule               = TestHelper.CreateModuleDefinition(AssemblyCsharpDll);
         var modManagerInterfacesModule = TestHelper.CreateModuleDefinition(ModManagerInterfaces);
-        var modManagerModule = TestHelper.CreateModuleDefinition(ModManager);
-
-        var logManagerType = new TypeDefinition("Logging", "LogManager", TypeAttributes.Class);
-        var modManagerType = new TypeDefinition("Railroader.ModManager", "ModManager", TypeAttributes.Class);
-        var bootstrapMethod = new MethodDefinition("Bootstrap", MethodAttributes.Public | MethodAttributes.Static, csharpModule.TypeSystem.Void);
-        modManagerType.Methods.Add(bootstrapMethod);
+        var modManagerModule           = TestHelper.CreateModuleDefinition(ModManager);
+        var logManagerType             = new TypeDefinition("Logging", "LogManager", TypeAttributes.Class | TypeAttributes.Public);
+        var modManagerType             = new TypeDefinition("RailManager", "ModManager", TypeAttributes.Class | TypeAttributes.Public);
 
         Action[] calls = [
             TestHelper.GetCurrentDirectoryCall,
@@ -357,240 +250,31 @@ public sealed class TestsPatcher
             TestHelper.ReadModuleCall(AssemblyCsharpDll, csharpModule),
             TestHelper.ReadModuleCall(ModManagerInterfaces, modManagerInterfacesModule),
             TestHelper.ReadModuleCall(ModManager, modManagerModule),
-            TestHelper.GetTypeCall(csharpModule, "Logging.LogManager", logManagerType),
-            TestHelper.GetTypeCall(modManagerModule, ModManager + ".ModManager", modManagerType),
-            TestHelper.FindBootstrapMethod(modManagerType),
-            TestHelper.ImportReferenceCall(csharpModule, new InstallerException("Could not find Railroader.ModManager.ModManager.Bootstrap method."))
-        ];
-
-        // Act
-        var act = Patcher.PatchGame;
-
-        // Assert
-        act.ShouldThrow<InstallerException>()
-            .Message.ShouldBe("Could not find Railroader.ModManager.ModManager.Bootstrap method.");
-
-        TestHelper.VerifyReceivedCalls(calls);
-    }
-
-    [Fact]
-    public void WhenCctorAlreadyCallsBootstrap_SkipsPatch() {
-        // Arrange
-        TestHelper.PrepareAppServices();
-
-        var csharpModule = TestHelper.CreateModuleDefinition(AssemblyCsharpDll);
-        var modManagerInterfacesModule = TestHelper.CreateModuleDefinition(ModManagerInterfaces);
-        var modManagerModule = TestHelper.CreateModuleDefinition(ModManager);
-
-        var logManagerType = new TypeDefinition("Logging", "LogManager", TypeAttributes.Class);
-        var modManagerType = new TypeDefinition("Railroader.ModManager", "ModManager", TypeAttributes.Class);
-        var bootstrapMethod = new MethodDefinition("Bootstrap", MethodAttributes.Public | MethodAttributes.Static, csharpModule.TypeSystem.Void);
-        modManagerType.Methods.Add(bootstrapMethod);
-
-        var logManagerCctor = new MethodDefinition(".cctor", MethodAttributes.Private | MethodAttributes.Static, csharpModule.TypeSystem.Void);
-        var il = logManagerCctor.Body.GetILProcessor();
-        var importedBootstrap = new MethodReference("Bootstrap", csharpModule.TypeSystem.Void, modManagerType) { HasThis = false };
-        il.Emit(OpCodes.Call, importedBootstrap);
-        il.Emit(OpCodes.Ret);
-        logManagerType.Methods.Add(logManagerCctor);
-        
-        Action[] calls = [
-            TestHelper.GetCurrentDirectoryCall,
-            TestHelper.FileExistsCall(ModManagerInterfaces, true),
-            TestHelper.FileExistsCall(ModManager, true),
-            TestHelper.FileExistsCall(AssemblyCsharpDll, true),
-            TestHelper.ReadModuleCall(AssemblyCsharpDll, csharpModule),
-            TestHelper.ReadModuleCall(ModManagerInterfaces, modManagerInterfacesModule),
-            TestHelper.ReadModuleCall(ModManager, modManagerModule),
-            TestHelper.GetTypeCall(csharpModule, "Logging.LogManager", logManagerType),
+            TestHelper.GetTypeCall(csharpModule, LogManagerType, logManagerType),
             TestHelper.GetTypeCall(modManagerModule, ModManagerType, modManagerType),
-            TestHelper.FindBootstrapMethod(modManagerType),
-            TestHelper.ImportReferenceCall(csharpModule, importedBootstrap),
-            () => AppServices.Console.WriteLine("Logging.LogManager static constructor already calls ModManager.Bootstrap. Skipping patch.",
-                ConsoleColor.DarkYellow)
+            TestHelper.FindMethod(modManagerType, "Bootstrap")
         ];
-
-        // Act
-        Patcher.PatchGame();
-
-        // Assert
-        TestHelper.VerifyReceivedCalls(calls);
-
-        // No IL changes
-        logManagerCctor.Body.Instructions.Count.ShouldBe(2); // call + ret
-        logManagerCctor.Body.Instructions[0]!.OpCode.ShouldBe(OpCodes.Call);
-        logManagerCctor.Body.Instructions[0]!.Operand.ShouldBe(importedBootstrap);
-
-        // No write
-        csharpModule.DidNotReceive().Write(Arg.Any<string>());
-    }
-
-    [Fact]
-    public void WhenCctorNotFound_CreatesCctorAndPatches() {
-        // Arrange
-        TestHelper.PrepareAppServices();
-
-        var csharpModule = TestHelper.CreateModuleDefinition(AssemblyCsharpDll);
-        var modManagerInterfacesMod = TestHelper.CreateModuleDefinition(ModManagerInterfaces);
-        var modManagerMod = TestHelper.CreateModuleDefinition(ModManager);
-
-        var logManagerType = new TypeDefinition("Logging", "LogManager", TypeAttributes.Class);
-        var modManagerType = new TypeDefinition("Railroader.ModManager", "ModManager", TypeAttributes.Class);
-        var bootstrapMethod = new MethodDefinition("Bootstrap", MethodAttributes.Public | MethodAttributes.Static, csharpModule.TypeSystem.Void);
-        modManagerType.Methods.Add(bootstrapMethod);
-
-        var importedBootstrap = new MethodReference("Bootstrap", csharpModule.TypeSystem.Void, modManagerType) { HasThis = false };
-        TestHelper.ImportReferenceCall(csharpModule, importedBootstrap);
-
-        var assemblyPath = Path.Combine(TestHelper.ManagedPath, AssemblyCsharpDll + ".dll");
-        var backupPath = assemblyPath.Replace(".dll", "_original.dll");
-
-        Action[] calls = [
-            TestHelper.GetCurrentDirectoryCall,
-            TestHelper.FileExistsCall(ModManagerInterfaces, true),
-            TestHelper.FileExistsCall(ModManager, true),
-            TestHelper.FileExistsCall(AssemblyCsharpDll, true),
-            TestHelper.ReadModuleCall(AssemblyCsharpDll, csharpModule),
-            TestHelper.ReadModuleCall(ModManagerInterfaces, modManagerInterfacesMod),
-            TestHelper.ReadModuleCall(ModManager, modManagerMod),
-            TestHelper.GetTypeCall(csharpModule, "Logging.LogManager", logManagerType),
-            TestHelper.GetTypeCall(modManagerMod, ModManagerType, modManagerType),
-            TestHelper.FindBootstrapMethod(modManagerType),
-            TestHelper.ImportReferenceCall(csharpModule, importedBootstrap),
-            () => _ = logManagerType.Methods.FirstOrDefault(m => m.Name == ".cctor"),
-            () => AppServices.File.Copy(assemblyPath, backupPath),
-            () => csharpModule.Write(assemblyPath),
-            () => AppServices.File.SetLastWriteTime(backupPath, Arg.Any<DateTime>()),
-            () => AppServices.Console.WriteLine("Successfully patched game.")
-        ];
-
-        // Act
-        Patcher.PatchGame();
-
-        // Assert
-        TestHelper.VerifyReceivedCalls(calls);
-
-        var cctor = logManagerType.Methods.FirstOrDefault(m => m.Name == ".cctor");
-        cctor.ShouldNotBeNull();
-        cctor.Body.Instructions.Count.ShouldBe(2);
-
-        // First instruction: call Bootstrap
-        cctor.Body.Instructions[0]!.OpCode.ShouldBe(OpCodes.Call);
-        cctor.Body.Instructions[0]!.Operand.ShouldBe(importedBootstrap);
-
-        // Second: ret
-        cctor.Body.Instructions[1]!.OpCode.ShouldBe(OpCodes.Ret);
-    }
-
-    [Fact]
-    public void WhenCctorExistsButEmpty_InsertsCallBeforeRet() {
-        // Arrange
-        TestHelper.PrepareAppServices();
-
-        var csharpModule = TestHelper.CreateModuleDefinition(AssemblyCsharpDll);
-        var modManagerInterfacesMod = TestHelper.CreateModuleDefinition(ModManagerInterfaces);
-        var modManagerMod = TestHelper.CreateModuleDefinition(ModManager);
-
-        var logManagerType = new TypeDefinition("Logging", "LogManager", TypeAttributes.Class);
-        var modManagerType = new TypeDefinition("Railroader.ModManager", "ModManager", TypeAttributes.Class);
-        var bootstrapMethod = new MethodDefinition("Bootstrap", MethodAttributes.Public | MethodAttributes.Static, csharpModule.TypeSystem.Void);
-        modManagerType.Methods.Add(bootstrapMethod);
-
-        // Create empty .cctor with just 'ret'
-        var cctor = new MethodDefinition(".cctor",
-            MethodAttributes.Private | MethodAttributes.Static | MethodAttributes.HideBySig |
-            MethodAttributes.SpecialName | MethodAttributes.RTSpecialName,
-            csharpModule.TypeSystem.Void);
-        var il = cctor.Body.GetILProcessor();
-        il.Append(il.Create(OpCodes.Ret));
-        logManagerType.Methods.Add(cctor);
-
-        var importedBootstrap = new MethodReference("Bootstrap", csharpModule.TypeSystem.Void, modManagerType) { HasThis = false };
-
-        var assemblyPath = Path.Combine(TestHelper.ManagedPath, AssemblyCsharpDll + ".dll");
-        var backupPath = assemblyPath.Replace(".dll", "_original.dll");
-
-        Action[] calls = [
-            TestHelper.GetCurrentDirectoryCall,
-            TestHelper.FileExistsCall(ModManagerInterfaces, true),
-            TestHelper.FileExistsCall(ModManager, true),
-            TestHelper.FileExistsCall(AssemblyCsharpDll, true),
-            TestHelper.ReadModuleCall(AssemblyCsharpDll, csharpModule),
-            TestHelper.ReadModuleCall(ModManagerInterfaces, modManagerInterfacesMod),
-            TestHelper.ReadModuleCall(ModManager, modManagerMod),
-            TestHelper.GetTypeCall(csharpModule, "Logging.LogManager", logManagerType),
-            TestHelper.GetTypeCall(modManagerMod, ModManagerType, modManagerType),
-            TestHelper.FindBootstrapMethod(modManagerType),
-            TestHelper.ImportReferenceCall(csharpModule, importedBootstrap),
-            () => _ = logManagerType.Methods.FirstOrDefault(m => m.Name == ".cctor"),
-            () => _ = cctor.Body.Instructions.Any(i => i.OpCode == OpCodes.Call && i.Operand == importedBootstrap),
-            () => AppServices.File.Copy(assemblyPath, backupPath),
-            () => csharpModule.Write(assemblyPath),
-            () => AppServices.File.SetLastWriteTime(backupPath, Arg.Any<DateTime>()),
-            () => AppServices.Console.WriteLine("Successfully patched game.")
-        ];
-
-        // Act
-        Patcher.PatchGame();
-
-        // Assert
-        TestHelper.VerifyReceivedCalls(calls);
-
-        cctor.Body.Instructions.Count.ShouldBe(2);
-        cctor.Body.Instructions[0]!.OpCode.ShouldBe(OpCodes.Call);
-        cctor.Body.Instructions[0]!.Operand.ShouldBe(importedBootstrap);
-        cctor.Body.Instructions[1]!.OpCode.ShouldBe(OpCodes.Ret);
-    }
-
-    [Fact]
-    public void WhenAssemblyResolverNotConfigured_ReadModuleThrows() {
-        // Arrange
-        var assemblyCsharpPath = Path.Combine(TestHelper.ManagedPath, AssemblyCsharpDll + ".dll");
-
-        TestHelper.PrepareAppServices();
-        TestHelper.FileExistsCall(ModManagerInterfaces, true);
-        TestHelper.FileExistsCall(ModManager, true);
-        TestHelper.FileExistsCall(AssemblyCsharpDll, true);
-        TestHelper.ReadModuleCall(AssemblyCsharpDll, new TestSuicide());
 
         // Act
         var act = Patcher.PatchGame;
 
         // Assert
-        act.ShouldThrow<TestSuicide>();
+        act.ShouldThrow<InstallerException>().Message.ShouldBe($"Could not find {ModManagerType}.Bootstrap method.");
 
-        AppServices.ModuleDefinition.Received().ReadModule(assemblyCsharpPath, Arg.Is<ReaderParameters>(o =>
-            o.InMemory == true &&
-            o.AssemblyResolver is DefaultAssemblyResolver && ((DefaultAssemblyResolver)o.AssemblyResolver).GetSearchDirectories()!
-            .SequenceEqual(new[] { TestHelper.ManagedPath })
-        ));
+        TestHelper.VerifyReceivedCalls(calls);
     }
 
     [Fact]
-    public void WhenCctorAlreadyCallsDifferentMethod_DoesNotSkipPatch() {
+    public void WhenGetMethodAwakeFails_ThrowsInstallerException() {
         // Arrange
         TestHelper.PrepareAppServices();
 
-        var csharpModule = TestHelper.CreateModuleDefinition(AssemblyCsharpDll);
+        var csharpModule               = TestHelper.CreateModuleDefinition(AssemblyCsharpDll);
         var modManagerInterfacesModule = TestHelper.CreateModuleDefinition(ModManagerInterfaces);
-        var modManagerModule = TestHelper.CreateModuleDefinition(ModManager);
-
-        var logManagerType = new TypeDefinition("Logging", "LogManager", TypeAttributes.Class);
-        var modManagerType = new TypeDefinition("Railroader.ModManager", "ModManager", TypeAttributes.Class);
-        var bootstrapMethod = new MethodDefinition("Bootstrap", MethodAttributes.Public | MethodAttributes.Static, csharpModule.TypeSystem.Void);
-        modManagerType.Methods.Add(bootstrapMethod);
-
-        var cctor = new MethodDefinition(".cctor", MethodAttributes.Private | MethodAttributes.Static, csharpModule.TypeSystem.Void);
-        var il = cctor.Body.GetILProcessor();
-        var importedOther = new MethodReference("Other", csharpModule.TypeSystem.Void, modManagerType) { HasThis = false };
-        il.Emit(OpCodes.Call, importedOther);
-        il.Emit(OpCodes.Ret);
-        logManagerType.Methods.Add(cctor);
-
-        var importedBootstrap = new MethodReference("Bootstrap", csharpModule.TypeSystem.Void, modManagerType) { HasThis = false };
-
-        var assemblyPath = Path.Combine(TestHelper.ManagedPath, AssemblyCsharpDll + ".dll");
-        var backupPath = assemblyPath.Replace(".dll", "_original.dll");
+        var modManagerModule           = TestHelper.CreateModuleDefinition(ModManager);
+        var logManagerType             = new TypeDefinition("Logging", "LogManager", TypeAttributes.Class | TypeAttributes.Public);
+        var modManagerType             = new TypeDefinition("RailManager", "ModManager", TypeAttributes.Class | TypeAttributes.Public);
+        modManagerType.Methods.Add(new("Bootstrap", MethodAttributes.Public | MethodAttributes.Static, modManagerModule.TypeSystem.Void));
 
         Action[] calls = [
             TestHelper.GetCurrentDirectoryCall,
@@ -600,16 +284,92 @@ public sealed class TestsPatcher
             TestHelper.ReadModuleCall(AssemblyCsharpDll, csharpModule),
             TestHelper.ReadModuleCall(ModManagerInterfaces, modManagerInterfacesModule),
             TestHelper.ReadModuleCall(ModManager, modManagerModule),
-            TestHelper.GetTypeCall(csharpModule, "Logging.LogManager", logManagerType),
+            TestHelper.GetTypeCall(csharpModule, LogManagerType, logManagerType),
             TestHelper.GetTypeCall(modManagerModule, ModManagerType, modManagerType),
-            TestHelper.FindBootstrapMethod(modManagerType),
-            TestHelper.ImportReferenceCall(csharpModule, importedBootstrap),
+            TestHelper.FindMethod(modManagerType, "Bootstrap"),
+            TestHelper.FindMethod(logManagerType, "Awake"),
+        ];
 
-            () => _ = cctor.Body.Instructions.Any(i => i.OpCode == OpCodes.Call && i.Operand == importedBootstrap),
-            () => AppServices.File.Copy(assemblyPath, backupPath),
-            () => csharpModule.Write(assemblyPath),
-            () => AppServices.File.SetLastWriteTime(backupPath, Arg.Any<DateTime>()),
-            () => AppServices.Console.WriteLine("Successfully patched game.")
+        // Act
+        var act = Patcher.PatchGame;
+
+        // Assert
+        act.ShouldThrow<InstallerException>().Message.ShouldBe($"Could not find {LogManagerType}.Awake method.");
+
+        TestHelper.VerifyReceivedCalls(calls);
+    }
+
+    [Fact]
+    public void WhenGetMethodMakeConfigurationFails_ThrowsInstallerException() {
+        // Arrange
+        TestHelper.PrepareAppServices();
+
+        var csharpModule               = TestHelper.CreateModuleDefinition(AssemblyCsharpDll);
+        var modManagerInterfacesModule = TestHelper.CreateModuleDefinition(ModManagerInterfaces);
+        var modManagerModule           = TestHelper.CreateModuleDefinition(ModManager);
+        var logManagerType             = new TypeDefinition("Logging", "LogManager", TypeAttributes.Class | TypeAttributes.Public);
+        logManagerType.Methods.Add(new("Awake", MethodAttributes.Public, modManagerModule.TypeSystem.Void));
+        var modManagerType             = new TypeDefinition("RailManager", "ModManager", TypeAttributes.Class | TypeAttributes.Public);
+        modManagerType.Methods.Add(new("Bootstrap", MethodAttributes.Public | MethodAttributes.Static, modManagerModule.TypeSystem.Void));
+
+        Action[] calls = [
+            TestHelper.GetCurrentDirectoryCall,
+            TestHelper.FileExistsCall(ModManagerInterfaces, true),
+            TestHelper.FileExistsCall(ModManager, true),
+            TestHelper.FileExistsCall(AssemblyCsharpDll, true),
+            TestHelper.ReadModuleCall(AssemblyCsharpDll, csharpModule),
+            TestHelper.ReadModuleCall(ModManagerInterfaces, modManagerInterfacesModule),
+            TestHelper.ReadModuleCall(ModManager, modManagerModule),
+            TestHelper.GetTypeCall(csharpModule, LogManagerType, logManagerType),
+            TestHelper.GetTypeCall(modManagerModule, ModManagerType, modManagerType),
+            TestHelper.FindMethod(modManagerType, "Bootstrap"),
+            TestHelper.FindMethod(logManagerType, "Awake"),
+            TestHelper.FindMethod(logManagerType, "MakeConfiguration"),
+        ];
+
+        // Act
+        var act = Patcher.PatchGame;
+
+        // Assert
+        act.ShouldThrow<InstallerException>().Message.ShouldBe($"Could not find {LogManagerType}.MakeConfiguration method.");
+
+        TestHelper.VerifyReceivedCalls(calls);
+    }
+
+    [Fact]
+    public void WhenPatchSuccessful() {
+        // Arrange
+        TestHelper.PrepareAppServices();
+
+        var csharpModule               = TestHelper.CreateModuleDefinition(AssemblyCsharpDll);
+        var modManagerInterfacesModule = TestHelper.CreateModuleDefinition(ModManagerInterfaces);
+        var modManagerModule           = TestHelper.CreateModuleDefinition(ModManager);
+        var logManagerType             = new TypeDefinition("Logging", "LogManager", TypeAttributes.Class | TypeAttributes.Public);
+        var awakeMethod                = new MethodDefinition("Awake", MethodAttributes.Public, modManagerModule.TypeSystem.Void);
+        var ilProcessor                = awakeMethod.Body.GetILProcessor();
+        ilProcessor.Emit(OpCodes.Ret);
+        logManagerType.Methods.Add(awakeMethod);
+        var makeConfigurationMethod = new MethodDefinition("MakeConfiguration", MethodAttributes.Private, modManagerModule.TypeSystem.Void);
+        logManagerType.Methods.Add(makeConfigurationMethod);
+        var modManagerType   = new TypeDefinition("RailManager", "ModManager", TypeAttributes.Class | TypeAttributes.Public);
+        var bootstrapMethod = new MethodDefinition("Bootstrap", MethodAttributes.Public | MethodAttributes.Static, modManagerModule.TypeSystem.Void);
+        modManagerType.Methods.Add(bootstrapMethod);
+        var bootstrapMethodReference = new MethodReference("Bootstrap", modManagerModule.TypeSystem.Void, modManagerType);
+
+        Action[] calls = [
+            TestHelper.GetCurrentDirectoryCall,
+            TestHelper.FileExistsCall(ModManagerInterfaces, true),
+            TestHelper.FileExistsCall(ModManager, true),
+            TestHelper.FileExistsCall(AssemblyCsharpDll, true),
+            TestHelper.ReadModuleCall(AssemblyCsharpDll, csharpModule),
+            TestHelper.ReadModuleCall(ModManagerInterfaces, modManagerInterfacesModule),
+            TestHelper.ReadModuleCall(ModManager, modManagerModule),
+            TestHelper.GetTypeCall(csharpModule, LogManagerType, logManagerType),
+            TestHelper.GetTypeCall(modManagerModule, ModManagerType, modManagerType),
+            TestHelper.FindMethod(modManagerType, "Bootstrap"),
+            TestHelper.FindMethod(logManagerType, "Awake"),
+            TestHelper.FindMethod(logManagerType, "MakeConfiguration"),
+            TestHelper.ImportReferenceCall(csharpModule, bootstrapMethodReference)
         ];
 
         // Act
@@ -618,11 +378,10 @@ public sealed class TestsPatcher
         // Assert
         TestHelper.VerifyReceivedCalls(calls);
 
-        cctor.Body.Instructions.Count.ShouldBe(3);
-        cctor.Body.Instructions[0]!.OpCode.ShouldBe(OpCodes.Call);
-        cctor.Body.Instructions[0]!.Operand.ShouldBe(importedBootstrap);
-        cctor.Body.Instructions[1]!.OpCode.ShouldBe(OpCodes.Call);
-        cctor.Body.Instructions[1]!.Operand.ShouldBe(importedOther);
-        cctor.Body.Instructions[2]!.OpCode.ShouldBe(OpCodes.Ret);
+
+        awakeMethod.Body.Instructions.ShouldContain(o => o.OpCode == OpCodes.Call && o.Operand == bootstrapMethodReference);
+
+
+        (makeConfigurationMethod.Attributes & MethodAttributes.Public).ShouldBe(MethodAttributes.Public);
     }
 }

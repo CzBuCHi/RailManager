@@ -92,7 +92,7 @@ public static class TestHelper
         return moduleDefinition;
     }
 
-    public static Action FindBootstrapMethod(TypeDefinition modManagerType) => () => _ = modManagerType.Methods.FirstOrDefault(m => m.Name == "Bootstrap");
+    public static Action FindMethod(TypeDefinition typeDefinition, string name) => () => _ = typeDefinition.Methods.FirstOrDefault(m => m.Name == name);
 
     public static Action ImportReferenceCall(IModuleDefinition moduleDefinition, Exception exception) => ImportReferenceCall(moduleDefinition, (object)exception);
 
@@ -113,4 +113,5 @@ public static class TestHelper
         AppServices.Assembly.GetExecutingAssembly().Returns(assembly);
         return assembly;
     }
+
 }

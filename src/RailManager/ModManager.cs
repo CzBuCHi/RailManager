@@ -29,7 +29,7 @@ public static class ModManager
             ModExtractor.ExtractAll();
             var modDefinitions = ModDefinitionLoader.LoadDefinitions();
             ConfigureLogger(modDefinitions);
-
+            
             var mods = ModLoader.LoadMods(modDefinitions);
             var todo = new Todo(Log.Logger.ForSourceContext(), mods, Messenger.Default!);
             todo.Execute();
